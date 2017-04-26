@@ -67,4 +67,5 @@ Review the changes, if everything looks good, squash merge into master.
 
 * commit message should have the format "Release 0.1.2" (replacing *0.1.2* with the actual version)
 * Tag commit as "v0.1.2"
-* Publish to NPM
+* CI will publish to NPM
+* Port the `CHANGELOG.md` and `package.json` contributors updates to the master branch
