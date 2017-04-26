@@ -69,3 +69,5 @@ Review the changes, if everything looks good, squash merge into master.
 * Tag commit as "v0.1.2"
 * CI will publish to NPM
 * Port the `CHANGELOG.md` and `package.json` contributors updates to the master branch
+* Update the `latest` tag to not point to the newest version
+  * `npm dist-tag add cucumber@<version> latest`
