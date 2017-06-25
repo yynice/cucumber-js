@@ -1,37 +1,11 @@
 Feature: Ambiguous Steps
 
   Scenario:
-    Given a file named "features/a.feature" with:
-      """
-      Feature: a feature name
-        Scenario: a scenario name
-          Given a ambiguous step
-      """
-    Given a file named "features/step_definitions/cucumber_steps.js" with:
-      """
-      import {defineSupportCode} from 'cucumber'
-
-      defineSupportCode(({When}) => {
-        When(/^a ambiguous step$/, function() {});
-        When(/^a (.*) step$/, function(status) {});
-      })
-      """
-    When I run cucumber.js with `-f progress`
-    Then it outputs the text:
-      """
-      A
-
-      Failures:
-
-      1) Scenario: a scenario name - features/a.feature:2
-         Step: Given a ambiguous step - features/a.feature:3
-         Message:
-           Multiple step definitions match:
-             /^a ambiguous step$/ - features/step_definitions/cucumber_steps.js:4
-             /^a (.*) step$/      - features/step_definitions/cucumber_steps.js:5
-
-      1 scenario (1 ambiguous)
-      1 step (1 ambiguous)
-      <duration-stat>
-      """
-    And it fails
+    Given a feature with the step "a ambiguous step"
+    And step definitions for
+      | /^a ambiguous step$/ |
+      | /^a (.*) step$/      |
+    When I run cucumber.js
+    Then the step "a ambiguous step" is ambiguous matching the step definitions:
+      | /^a ambiguous step$/ |
+      | /^a (.*) step$/      |
