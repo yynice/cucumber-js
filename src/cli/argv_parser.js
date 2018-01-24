@@ -28,7 +28,7 @@ export default class ArgvParser {
   }
 
   static mergeTags(val, memo) {
-    return memo === '' ? `(${val})` : `${memo} and (${val})`
+    return memo === '' ? `(${val})` : `${memo} or (${val})`
   }
 
   static validateLanguage(val) {
