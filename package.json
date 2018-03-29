@@ -170,6 +170,7 @@
   "devDependencies": {
     "ansi-html": "^0.0.7",
     "babel-cli": "^6.10.1",
+    "babel-engine-plugin": "^0.2.1",
     "babel-eslint": "^8.0.1",
     "babel-loader": "^7.1.4",
     "babel-plugin-external-helpers": "^6.18.0",
