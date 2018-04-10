@@ -82,9 +82,12 @@ export default class Cli {
       supportCodeLibrary,
     })
     const runtime = new Runtime({
+      eventBroadcaster,
       featuresConfig: configuration.featuresConfig,
       runtimeConfig: configuration.runtimeConfig,
       supportCodeLibrary: supportCodeLibrary,
+      filterStacktraces: configuration.filterStacktraces,
+      worldParameters: configuration.worldParameters,
     })
     let success
     await new Promise(resolve => {

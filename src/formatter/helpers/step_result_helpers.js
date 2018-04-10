@@ -1,51 +1,27 @@
-import { formatError } from './error_helpers'
 import Status from '../../status'
-import indentString from 'indent-string'
+import KeywordType from './keyword_type'
 
-function getAmbiguousStepResultMessage({ colorFns, testStep }) {
-  return colorFns.ambiguous(testStep.result.exception)
-}
-
-function getFailedStepResultMessage({ colorFns, testStep }) {
-  return formatError(testStep.result.exception, colorFns)
-}
-
-function getPendingStepResultMessage({ colorFns }) {
-  return colorFns.pending('Pending')
-}
-
-export function getStepMessage({
-  colorFns,
-  keywordType,
-  snippetBuilder,
-  testStep,
-  pickleStep,
-}) {
+export function getStepMessage({ keywordType, testStep }) {
   switch (testStep.result.status) {
     case Status.AMBIGUOUS:
-      return getAmbiguousStepResultMessage({ colorFns, testStep })
     case Status.FAILED:
-      return getFailedStepResultMessage({ colorFns, testStep })
-    case Status.UNDEFINED:
-      return getUndefinedStepResultMessage({
-        colorFns,
-        keywordType,
-        snippetBuilder,
-        pickleStep,
-      })
     case Status.PENDING:
-      return getPendingStepResultMessage({ colorFns })
+      return testStep.result.message
+    case Status.UNDEFINED:
+      return testStep.result.message.replace(
+        '{{keyword}}',
+        getUndefinedStepResultKeyword(keywordType)
+      )
   }
 }
 
-function getUndefinedStepResultMessage({
-  colorFns,
-  keywordType,
-  snippetBuilder,
-  pickleStep,
-}) {
-  const snippet = snippetBuilder.build({ keywordType, pickleStep })
-  const message = `${'Undefined. Implement with the following snippet:' +
-    '\n\n'}${indentString(snippet, 2)}\n`
-  return colorFns.undefined(message)
+function getUndefinedStepResultKeyword(keywordType) {
+  switch (keywordType) {
+    case KeywordType.EVENT:
+      return 'When'
+    case KeywordType.OUTCOME:
+      return 'Then'
+    case KeywordType.PRECONDITION:
+      return 'Given'
+  }
 }

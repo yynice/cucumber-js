@@ -112,13 +112,7 @@ function formatStep({
     })
   }
 
-  const message = getStepMessage({
-    colorFns,
-    keywordType,
-    pickleStep,
-    snippetBuilder,
-    testStep,
-  })
+  const message = getStepMessage({ keywordType, testStep })
   if (message) {
     text += `${indentString(message, 4)}\n`
   }

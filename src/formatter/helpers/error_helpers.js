@@ -1,12 +1,13 @@
+import colors from 'colors/safe'
 import { format } from 'assertion-error-formatter'
 
-export function formatError(error, colorFns) {
+export function formatError(error) {
   return format(error, {
     colorFns: {
-      diffAdded: colorFns.red,
-      diffRemoved: colorFns.green,
-      errorMessage: colorFns.red,
-      errorStack: colorFns.gray,
+      diffAdded: colors.red,
+      diffRemoved: colors.green,
+      errorMessage: colors.red,
+      errorStack: colors.gray,
     },
   })
 }

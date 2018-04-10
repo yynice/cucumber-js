@@ -1,16 +1,16 @@
 import _ from 'lodash'
-import { formatLocation } from '../formatter/helpers'
+import { formatLocation } from '../../formatter/helpers'
 import Promise from 'bluebird'
-import StackTraceFilter from './stack_trace_filter'
-import UserCodeRunner from '../user_code_runner'
+import StackTraceFilter from '../stack_trace_filter'
+import UserCodeRunner from '../../user_code_runner'
 import VError from 'verror'
 import childProcess from 'child_process'
 import readline from 'readline'
 import commandTypes from './command_types'
-import AttachmentManager from './attachment_manager'
-import { buildStepArgumentIterator } from '../step_arguments'
-import DataTable from '../models/data/table'
-import StepRunner from './step_runner'
+import AttachmentManager from '../attachment_manager'
+import { buildStepArgumentIterator } from '../../step_arguments'
+import DataTable from '../../models/data_table'
+import StepRunner from '../step_runner'
 
 export default class Runtime {
   // featuresConfig - {absolutePaths, defaultLanguage, orderSeed, filters}
@@ -175,8 +175,18 @@ export default class Runtime {
           hookOrStepResult: stepResult,
         })
         break
+      case commandTypes.GENERATE_SNIPPET:
+        this.sendActionComplete({
+          responseTo: command.id,
+          snippet: '', // TODO create snippet
+        })
+        break
       case commandTypes.EVENT:
-        this.eventBroadcaster.emit(command.event.type, command.event.data)
+        this.eventBroadcaster.emit(command.event.type, command.event)
+        if (command.event.type === 'test-run-finished') {
+          this.result = command.event.result
+          this.pickleRunner.stdin.end()
+        }
         break
       case commandTypes.ERROR:
         throw new Error(command.message)
@@ -194,19 +204,18 @@ export default class Runtime {
     )
   }
 
-  start(done) {
-    if (this.options.filterStacktraces) {
+  run(done) {
+    if (this.filterStacktraces) {
       this.stackTraceFilter.filter()
     }
     this.pickleRunner = childProcess.spawn('cucumber-pickle-runner', [], {
-      env: {},
       stdio: ['pipe', 'pipe', process.stderr],
     })
-    this.childProcess.on('exit', () => {
+    this.pickleRunner.on('exit', () => {
       if (!this.result) {
         throw new Error('Pickle runner exited unexpectedly')
       }
-      if (this.options.filterStacktraces) {
+      if (this.filterStacktraces) {
         this.stackTraceFilter.unfilter()
       }
       done(this.result.success)

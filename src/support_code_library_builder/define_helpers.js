@@ -23,7 +23,7 @@ export function defineTestCaseHook(builder, collectionName) {
       location: formatLocation({ line, uri }),
     })
     const hookDefinition = new TestCaseHookDefinition({
-      id: builder.getNextId(),
+      id: builder.getNextId().toString(),
       code,
       line,
       options,
@@ -48,7 +48,7 @@ export function defineTestRunHook(builder, collectionName) {
       location: formatLocation({ line, uri }),
     })
     const hookDefinition = new TestRunHookDefinition({
-      id: builder.getNextId(),
+      id: builder.getNextId().toString(),
       code,
       line,
       options,
@@ -71,14 +71,14 @@ export function defineStep(builder) {
       location: formatLocation({ line, uri }),
     })
     const stepDefinition = new StepDefinition({
-      id: builder.getNextId(),
+      id: builder.getNextId().toString(),
       code,
       line,
       options,
       pattern: {
-        source: pattern,
+        source: typeof pattern === 'string' ? pattern : pattern.source,
         type:
-          typeof patternSource === 'string'
+          typeof pattern === 'string'
             ? 'cucumber_expression'
             : 'regular_expression',
       },

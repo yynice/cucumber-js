@@ -6,6 +6,7 @@ import OptionSplitter from './option_splitter'
 import Promise, { promisify } from 'bluebird'
 import glob from 'glob'
 
+const FEATURE_LINENUM_REGEXP = /^(.*?)((?::[\d]+)+)?$/
 const globP = promisify(glob)
 
 export default class ConfigurationBuilder {
@@ -40,30 +41,32 @@ export default class ConfigurationBuilder {
       )
     }
     return {
-      featureDefaultLanguage: this.options.language,
-      featurePaths,
+      featuresConfig: {
+        absolutePaths: featurePaths,
+        defaultLanguage: this.options.language,
+        filters: {
+          names: this.options.name,
+          tagExpression: this.options.tags,
+          lines: this.getFeatureUriToLinesMapping(unexpandedFeaturePaths),
+        },
+        order: this.options.order,
+      },
+      filterStacktraces: !this.options.backtrace,
       formats: this.getFormats(),
       formatOptions: this.getFormatOptions(),
       listI18nKeywordsFor,
       listI18nLanguages,
-      order: this.options.order,
       parallel: this.options.parallel,
       profiles: this.options.profile,
-      pickleFilterOptions: {
-        featurePaths: unexpandedFeaturePaths,
-        names: this.options.name,
-        tagExpression: this.options.tags,
-      },
-      runtimeOptions: {
-        dryRun: !!this.options.dryRun,
-        failFast: !!this.options.failFast,
-        filterStacktraces: !this.options.backtrace,
-        strict: !!this.options.strict,
-        worldParameters: this.options.worldParameters,
+      runtimeConfig: {
+        isDryRun: !!this.options.dryRun,
+        isFailFast: !!this.options.failFast,
+        isStrict: !!this.options.strict,
       },
       shouldExitImmediately: !!this.options.exit,
       supportCodePaths,
       supportCodeRequiredModules: this.options.requireModule,
+      worldParameters: this.options.worldParameters,
     }
   }
 
@@ -123,6 +126,29 @@ export default class ConfigurationBuilder {
       mapping[outputTo || ''] = type
     })
     return _.map(mapping, (type, outputTo) => ({ outputTo, type }))
+  }
+
+  getFeatureUriToLinesMapping(featurePaths) {
+    const mapping = {}
+    featurePaths.forEach(featurePath => {
+      const match = FEATURE_LINENUM_REGEXP.exec(featurePath)
+      if (match) {
+        const uri = path.join(this.cwd, match[1])
+        const linesExpression = match[2]
+        if (linesExpression) {
+          if (!mapping[uri]) {
+            mapping[uri] = []
+          }
+          linesExpression
+            .slice(1)
+            .split(':')
+            .forEach(line => {
+              mapping[uri].push(parseInt(line))
+            })
+        }
+      }
+    })
+    return mapping
   }
 
   async getUnexpandedFeaturePaths() {

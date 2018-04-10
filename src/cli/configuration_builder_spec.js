@@ -26,8 +26,17 @@ describe('Configuration', () => {
 
     it('returns the default configuration', function() {
       expect(this.result).to.eql({
-        featureDefaultLanguage: '',
-        featurePaths: [],
+        featuresConfig: {
+          absolutePaths: [],
+          defaultLanguage: '',
+          order: 'defined',
+          filters: {
+            lines: {},
+            names: [],
+            tagExpression: '',
+          },
+        },
+        filterStacktraces: true,
         formatOptions: {
           colorsEnabled: true,
           cwd: this.tmpDir,
@@ -35,24 +44,17 @@ describe('Configuration', () => {
         formats: [{ outputTo: '', type: 'progress' }],
         listI18nKeywordsFor: '',
         listI18nLanguages: false,
-        order: 'defined',
         parallel: 0,
-        pickleFilterOptions: {
-          featurePaths: ['features/**/*.feature'],
-          names: [],
-          tagExpression: '',
-        },
         profiles: [],
-        runtimeOptions: {
-          dryRun: false,
-          failFast: false,
-          filterStacktraces: true,
-          strict: true,
-          worldParameters: {},
+        runtimeConfig: {
+          isDryRun: false,
+          isFailFast: false,
+          isStrict: true,
         },
         shouldExitImmediately: false,
         supportCodePaths: [],
         supportCodeRequiredModules: [],
+        worldParameters: {},
       })
     })
   })
@@ -70,15 +72,28 @@ describe('Configuration', () => {
 
     it('returns the appropriate feature and support code paths', async function() {
       const {
-        featurePaths,
-        pickleFilterOptions,
+        featuresConfig: { absolutePaths: featurePaths },
         supportCodePaths,
       } = this.result
       expect(featurePaths).to.eql([this.featurePath])
-      expect(pickleFilterOptions.featurePaths).to.eql([
-        this.relativeFeaturePath,
-      ])
       expect(supportCodePaths).to.eql([this.supportCodePath])
+    })
+  })
+
+  describe('path to a feature with multiple lines', () => {
+    beforeEach(async function() {
+      this.relativeFeaturePath = path.join('features', 'a.feature')
+      this.featurePath = path.join(this.tmpDir, this.relativeFeaturePath)
+      await outputFile(this.featurePath, '')
+      this.supportCodePath = path.join(this.tmpDir, 'features', 'a.js')
+      await outputFile(this.supportCodePath, '')
+      this.argv.push(this.relativeFeaturePath + ':1:2')
+      this.result = await ConfigurationBuilder.build(this.configurationOptions)
+    })
+
+    it('returns the appropriate feature and support code paths', async function() {
+      const { featuresConfig: { filters: { lines } } } = this.result
+      expect(lines).to.eql({ [this.featurePath]: [1, 2] })
     })
   })
 
@@ -95,14 +110,10 @@ describe('Configuration', () => {
 
     it('returns the appropriate feature and support code paths', async function() {
       const {
-        featurePaths,
-        pickleFilterOptions,
+        featuresConfig: { absolutePaths: featurePaths },
         supportCodePaths,
       } = this.result
       expect(featurePaths).to.eql([this.featurePath])
-      expect(pickleFilterOptions.featurePaths).to.eql([
-        this.relativeFeaturePath,
-      ])
       expect(supportCodePaths).to.eql([this.supportCodePath])
     })
   })
