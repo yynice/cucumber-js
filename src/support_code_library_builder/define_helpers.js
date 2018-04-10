@@ -129,7 +129,7 @@ export function defineParameterType(builder) {
     const _name = name || getTypeName()
     if (typeof useForSnippets !== 'boolean') useForSnippets = true
     if (typeof preferForRegexpMatch !== 'boolean') preferForRegexpMatch = false
-    builder.options.parameterTypeConfigs.push({
+    builder.options.parameterTypes.push({
       name: _name,
       regexps: Array(regexp),
       useForSnippets,

@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import { formatLocation } from '../formatter/helpers'
 import Promise from 'bluebird'
 import StackTraceFilter from './stack_trace_filter'
@@ -46,7 +47,7 @@ export default class Runtime {
           function(c) {
             return c[0]
           }
-        return transform.call(world, captures)
+        return transform.apply(world, captures)
       }
     )
     const iterator = buildStepArgumentIterator({
@@ -81,7 +82,10 @@ export default class Runtime {
     return StepRunner.run({
       defaultTimeout: this.supportCodeLibrary.defaultTimeout,
       parameters: [], // todo get hook parameter
-      stepDefinition: null, // todo get proper hook definition
+      stepDefinition: _.find(
+        this.supportCodeLibrary.beforeTestCaseHookDefinitions,
+        ['id', testCaseHookDefinitionId]
+      ),
       world: this.testCases[testCaseId].world,
     })
   }
@@ -90,24 +94,41 @@ export default class Runtime {
     return StepRunner.run({
       defaultTimeout: this.supportCodeLibrary.defaultTimeout,
       parameters: [], // todo get hook parameter
-      stepDefinition: null, // todo get proper hook definition
+      stepDefinition: _.find(
+        this.supportCodeLibrary.afterTestCaseHookDefinitions,
+        ['id', testCaseHookDefinitionId]
+      ),
       world: this.testCases[testCaseId].world,
     })
   }
 
-  async runStep(testCaseId, stepId, parameters) {
-    const result = await StepRunner.run({
-      defaultTimeout: this.supportCodeLibrary.defaultTimeout,
-      parameters,
-      stepDefinition: null, // todo get proper step definition
+  runStep({
+    id,
+    testCaseId,
+    stepDefinitionId,
+    pickleArguments,
+    patternMatches,
+  }) {
+    const parameters = this.getStepParameters({
+      pickleArguments,
+      patternMatches,
+      parameterTypeNameToTransform: this.supportCodeLibrary
+        .parameterTypeNameToTransform,
       world: this.testCases[testCaseId].world,
     })
-    this.sendActionComplete({ hookOrStepResult: result })
+    return StepRunner.run({
+      defaultTimeout: this.supportCodeLibrary.defaultTimeout,
+      parameters,
+      stepDefinition: _.find(this.supportCodeLibrary.stepDefinitions, [
+        'id',
+        stepDefinitionId,
+      ]),
+      world: this.testCases[testCaseId].world,
+    })
   }
 
   async parseCommand(line) {
     const command = JSON.parse(line)
-    let result
     switch (command.type) {
       case commandTypes.RUN_BEFORE_TEST_RUN_HOOKS:
         await this.runTestRunHooks(
@@ -148,18 +169,11 @@ export default class Runtime {
         })
         break
       case commandTypes.RUN_TEST_STEP:
-        const parameters = this.getStepParameters({
-          pickleArguments: command.arguments,
-          patternMatches: command.patternMatches,
-          parameterTypeNameToTransform: this.supportCodeLibrary
-            .parameterTypeNameToTransform,
-          world: this.testCases[command.testCaseId].world,
+        const stepResult = await this.runStep(command)
+        this.sendActionComplete({
+          responseTo: command.id,
+          hookOrStepResult: stepResult,
         })
-        const stepResult = this.runStep(
-          command.testCaseId,
-          command.stepDefinitionId,
-          parameters
-        )
         break
       case commandTypes.EVENT:
         this.eventBroadcaster.emit(command.event.type, command.event.data)
@@ -210,6 +224,12 @@ export default class Runtime {
       JSON.stringify({
         featuresConfig: this.featuresConfig,
         runtimeConfig: this.runtimeConfig,
+        supportCodeConfig: _.pick(this.supportCodeLibrary, [
+          'afterTestCaseHookDefinitions',
+          'beforeTestCaseHookDefinitions',
+          'parameterTypes',
+          'stepDefinitions',
+        ]),
         type: 'start',
       }) + '\n'
     )
