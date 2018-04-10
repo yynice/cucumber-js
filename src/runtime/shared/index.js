@@ -45,7 +45,7 @@ export default class Runtime {
         const transform =
           parameterTypeNameToTransform[parameterTypeName] ||
           function(c) {
-            return c[0]
+            return c
           }
         return transform.apply(world, captures)
       }
