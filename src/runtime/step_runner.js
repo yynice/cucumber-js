@@ -2,33 +2,12 @@ import _ from 'lodash'
 import Status from '../status'
 import Time from '../time'
 import UserCodeRunner from '../user_code_runner'
-import Promise from 'bluebird'
 
 const { beginTiming, endTiming } = Time
 
-async function run({
-  defaultTimeout,
-  hookParameter,
-  parameterTypeRegistry,
-  step,
-  stepDefinition,
-  world,
-}) {
+async function run({ defaultTimeout, parameters, stepDefinition, world }) {
   beginTiming()
-  let error, result, parameters
-
-  try {
-    parameters = await Promise.all(
-      stepDefinition.getInvocationParameters({
-        hookParameter,
-        parameterTypeRegistry,
-        step,
-        world,
-      })
-    )
-  } catch (err) {
-    error = err
-  }
+  let error, result
 
   if (!error) {
     const timeoutInMilliseconds =

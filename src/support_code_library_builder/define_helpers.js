@@ -1,7 +1,6 @@
 import { deprecate } from 'util'
 import _ from 'lodash'
 import { formatLocation } from '../formatter/helpers'
-import { ParameterType } from 'cucumber-expressions'
 import path from 'path'
 import StackTrace from 'stacktrace-js'
 import StepDefinition from '../models/step_definition'
@@ -24,6 +23,7 @@ export function defineTestCaseHook(builder, collectionName) {
       location: formatLocation({ line, uri }),
     })
     const hookDefinition = new TestCaseHookDefinition({
+      id: builder.getNextId(),
       code,
       line,
       options,
@@ -48,6 +48,7 @@ export function defineTestRunHook(builder, collectionName) {
       location: formatLocation({ line, uri }),
     })
     const hookDefinition = new TestRunHookDefinition({
+      id: builder.getNextId(),
       code,
       line,
       options,
@@ -70,10 +71,17 @@ export function defineStep(builder) {
       location: formatLocation({ line, uri }),
     })
     const stepDefinition = new StepDefinition({
+      id: builder.getNextId(),
       code,
       line,
       options,
-      pattern,
+      pattern: {
+        source: pattern,
+        type:
+          typeof patternSource === 'string'
+            ? 'cucumber_expression'
+            : 'regular_expression',
+      },
       uri,
     })
     builder.options.stepDefinitions.push(stepDefinition)
@@ -121,14 +129,12 @@ export function defineParameterType(builder) {
     const _name = name || getTypeName()
     if (typeof useForSnippets !== 'boolean') useForSnippets = true
     if (typeof preferForRegexpMatch !== 'boolean') preferForRegexpMatch = false
-    const parameterType = new ParameterType(
-      _name,
-      regexp,
-      null,
-      transformer,
+    builder.options.parameterTypeConfigs.push({
+      name: _name,
+      regexps: Array(regexp),
       useForSnippets,
-      preferForRegexpMatch
-    )
-    builder.options.parameterTypeRegistry.defineParameterType(parameterType)
+      preferForRegexpMatch,
+    })
+    builder.options.parameterTypeNameToTransform[name] = transformer
   }
 }

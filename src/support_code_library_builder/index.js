@@ -11,6 +11,7 @@ import { wrapDefinitions } from './finalize_helpers'
 
 export class SupportCodeLibraryBuilder {
   constructor() {
+    this.nextId = 1
     this.methods = {
       defineParameterType: defineParameterType(this),
       After: defineTestCaseHook(this, 'afterTestCaseHookDefinitions'),
@@ -32,6 +33,12 @@ export class SupportCodeLibraryBuilder {
       },
     }
     this.methods.Given = this.methods.When = this.methods.Then = this.methods.defineStep
+  }
+
+  getNextId() {
+    const output = this.nextId
+    this.nextId += 1
+    return output
   }
 
   finalize() {
@@ -64,7 +71,8 @@ export class SupportCodeLibraryBuilder {
       defaultTimeout: 5000,
       definitionFunctionWrapper: null,
       stepDefinitions: [],
-      parameterTypeRegistry: TransformLookupBuilder.build(),
+      parameterTypeConfigs: [],
+      parameterTypeNameToTransform: {},
       World({ attach, parameters }) {
         this.attach = attach
         this.parameters = parameters

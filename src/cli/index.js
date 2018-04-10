@@ -1,5 +1,5 @@
 import { EventDataCollector } from '../formatter/helpers'
-import { getExpandedArgv, getTestCasesFromFilesystem } from './helpers'
+import { getExpandedArgv } from './helpers'
 import { validateInstall } from './install_validator'
 import * as I18n from './i18n'
 import ConfigurationBuilder from './configuration_builder'
@@ -7,10 +7,8 @@ import EventEmitter from 'events'
 import FormatterBuilder from '../formatter/builder'
 import fs from 'mz/fs'
 import path from 'path'
-import PickleFilter from '../pickle_filter'
 import Promise from 'bluebird'
-import ParallelRuntimeMaster from '../runtime/parallel/master'
-import Runtime from '../runtime'
+import Runtime from '../runtime/shared'
 import supportCodeLibraryBuilder from '../support_code_library_builder'
 
 export default class Cli {
@@ -83,38 +81,18 @@ export default class Cli {
       formats: configuration.formats,
       supportCodeLibrary,
     })
-    const testCases = await getTestCasesFromFilesystem({
-      cwd: this.cwd,
-      eventBroadcaster,
-      featureDefaultLanguage: configuration.featureDefaultLanguage,
-      featurePaths: configuration.featurePaths,
-      order: configuration.order,
-      pickleFilter: new PickleFilter(configuration.pickleFilterOptions),
+    const runtime = new Runtime({
+      featuresConfig: configuration.featuresConfig,
+      runtimeConfig: configuration.runtimeConfig,
+      supportCodeLibrary: supportCodeLibrary,
     })
     let success
-    if (configuration.parallel) {
-      const parallelRuntimeMaster = new ParallelRuntimeMaster({
-        eventBroadcaster,
-        options: configuration.runtimeOptions,
-        supportCodePaths: configuration.supportCodePaths,
-        supportCodeRequiredModules: configuration.supportCodeRequiredModules,
-        testCases,
+    await new Promise(resolve => {
+      runtime.run(s => {
+        success = s
+        resolve()
       })
-      await new Promise(resolve => {
-        parallelRuntimeMaster.run(configuration.parallel, s => {
-          success = s
-          resolve()
-        })
-      })
-    } else {
-      const runtime = new Runtime({
-        eventBroadcaster,
-        options: configuration.runtimeOptions,
-        supportCodeLibrary,
-        testCases,
-      })
-      success = await runtime.start()
-    }
+    })
     await cleanup()
     return {
       shouldExitImmediately: configuration.shouldExitImmediately,
