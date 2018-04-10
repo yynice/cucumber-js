@@ -11,7 +11,6 @@ When(/^I run cucumber-js(?: with `(|.+)`)?$/, { timeout: 10000 }, function(
 ) {
   args = Mustache.render(args || '', this)
   args = stringArgv(args || '')
-  console.log(args)
   return this.run(this.localExecutablePath, args)
 })
 
