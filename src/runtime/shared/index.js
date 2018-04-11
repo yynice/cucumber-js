@@ -1,15 +1,16 @@
-import { formatLocation } from '../formatter/helpers'
+import _ from 'lodash'
+import { formatLocation } from '../../formatter/helpers'
 import Promise from 'bluebird'
 import StackTraceFilter from '../stack_trace_filter'
-import UserCodeRunner from '../user_code_runner'
+import UserCodeRunner from '../../user_code_runner'
 import VError from 'verror'
 import childProcess from 'child_process'
 import readline from 'readline'
 import commandTypes from './command_types'
-import AttachmentManager from './attachment_manager'
-import { buildStepArgumentIterator } from '../step_arguments'
-import DataTable from '../models/data/table'
-import StepRunner from './step_runner'
+import AttachmentManager from '../attachment_manager'
+import { buildStepArgumentIterator } from '../../step_arguments'
+import DataTable from '../../models/data_table'
+import StepRunner from '../step_runner'
 
 export default class Runtime {
   // featuresConfig - {absolutePaths, defaultLanguage, orderSeed, filters}
@@ -46,9 +47,9 @@ export default class Runtime {
         const transform =
           parameterTypeNameToTransform[parameterTypeName] ||
           function(c) {
-            return c[0]
+            return c
           }
-        return transform.call(world, captures)
+        return transform.apply(world, captures)
       }
     )
     const iterator = buildStepArgumentIterator({
@@ -70,7 +71,7 @@ export default class Runtime {
           this.supportCodeLibrary.defaultTimeout,
       })
       if (error) {
-        const location = formatLocation(hookDefinition, this.cwd)
+        const location = formatLocation(hookDefinition)
         throw new VError(
           error,
           `${name} hook errored, process exiting: ${location}`
@@ -83,7 +84,10 @@ export default class Runtime {
     return StepRunner.run({
       defaultTimeout: this.supportCodeLibrary.defaultTimeout,
       parameters: [], // todo get hook parameter
-      stepDefinition: null, // todo get proper hook definition
+      stepDefinition: _.find(
+        this.supportCodeLibrary.beforeTestCaseHookDefinitions,
+        ['id', testCaseHookDefinitionId]
+      ),
       world: this.testCases[testCaseId].world,
     })
   }
@@ -92,19 +96,37 @@ export default class Runtime {
     return StepRunner.run({
       defaultTimeout: this.supportCodeLibrary.defaultTimeout,
       parameters: [], // todo get hook parameter
-      stepDefinition: null, // todo get proper hook definition
+      stepDefinition: _.find(
+        this.supportCodeLibrary.afterTestCaseHookDefinitions,
+        ['id', testCaseHookDefinitionId]
+      ),
       world: this.testCases[testCaseId].world,
     })
   }
 
-  async runStep(testCaseId, stepId, parameters) {
-    const result = await StepRunner.run({
-      defaultTimeout: this.supportCodeLibrary.defaultTimeout,
-      parameters,
-      stepDefinition: null, // todo get proper step definition
+  runStep({
+    id,
+    testCaseId,
+    stepDefinitionId,
+    pickleArguments,
+    patternMatches,
+  }) {
+    const parameters = this.getStepParameters({
+      pickleArguments,
+      patternMatches,
+      parameterTypeNameToTransform: this.supportCodeLibrary
+        .parameterTypeNameToTransform,
       world: this.testCases[testCaseId].world,
     })
-    this.sendActionComplete({ hookOrStepResult: result })
+    return StepRunner.run({
+      defaultTimeout: this.supportCodeLibrary.defaultTimeout,
+      parameters,
+      stepDefinition: _.find(this.supportCodeLibrary.stepDefinitions, [
+        'id',
+        stepDefinitionId,
+      ]),
+      world: this.testCases[testCaseId].world,
+    })
   }
 
   async parseCommand(line) {
@@ -149,25 +171,24 @@ export default class Runtime {
         })
         break
       case commandTypes.RUN_TEST_STEP:
-        const parameters = this.getStepParameters({
-          pickleArguments: command.arguments,
-          patternMatches: command.patternMatches,
-          parameterTypeNameToTransform: this.supportCodeLibrary
-            .parameterTypeNameToTransform,
-          world: this.testCases[command.testCaseId].world,
-        })
-        const stepResult = await this.runStep(
-          command.testCaseId,
-          command.stepDefinitionId,
-          parameters
-        )
+        const stepResult = await this.runStep(command)
         this.sendActionComplete({
           responseTo: command.id,
           hookOrStepResult: stepResult,
         })
         break
+      case commandTypes.GENERATE_SNIPPET:
+        this.sendActionComplete({
+          responseTo: command.id,
+          snippet: '', // TODO create snippet
+        })
+        break
       case commandTypes.EVENT:
-        this.eventBroadcaster.emit(command.event.type, command.event.data)
+        this.eventBroadcaster.emit(command.event.type, command.event)
+        if (command.event.type === 'test-run-finished') {
+          this.result = command.event.result
+          this.pickleRunner.stdin.end()
+        }
         break
       case commandTypes.ERROR:
         throw new Error(command.message)
@@ -185,19 +206,18 @@ export default class Runtime {
     )
   }
 
-  start(done) {
-    if (this.options.filterStacktraces) {
+  run(done) {
+    if (this.filterStacktraces) {
       this.stackTraceFilter.filter()
     }
     this.pickleRunner = childProcess.spawn('cucumber-pickle-runner', [], {
-      env: {},
       stdio: ['pipe', 'pipe', process.stderr],
     })
-    this.childProcess.on('exit', () => {
+    this.pickleRunner.on('exit', () => {
       if (!this.result) {
         throw new Error('Pickle runner exited unexpectedly')
       }
-      if (this.options.filterStacktraces) {
+      if (this.filterStacktraces) {
         this.stackTraceFilter.unfilter()
       }
       done(this.result.success)
@@ -213,8 +233,15 @@ export default class Runtime {
     })
     this.pickleRunner.stdin.write(
       JSON.stringify({
+        baseDirectory: this.cwd,
         featuresConfig: this.featuresConfig,
         runtimeConfig: this.runtimeConfig,
+        supportCodeConfig: _.pick(this.supportCodeLibrary, [
+          'afterTestCaseHookDefinitions',
+          'beforeTestCaseHookDefinitions',
+          'parameterTypes',
+          'stepDefinitions',
+        ]),
         type: 'start',
       }) + '\n'
     )

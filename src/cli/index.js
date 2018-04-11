@@ -82,6 +82,7 @@ export default class Cli {
       supportCodeLibrary,
     })
     const runtime = new Runtime({
+      cwd: this.cwd,
       eventBroadcaster,
       featuresConfig: configuration.featuresConfig,
       runtimeConfig: configuration.runtimeConfig,

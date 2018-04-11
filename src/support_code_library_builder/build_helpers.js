@@ -67,7 +67,13 @@ export function buildStepDefinition({ id, pattern, options, code, cwd }) {
     code,
     line,
     options,
-    pattern,
+    pattern: {
+      source: typeof pattern === 'string' ? pattern : pattern.source,
+      type:
+        typeof pattern === 'string'
+          ? 'cucumber_expression'
+          : 'regular_expression',
+    },
     uri,
   })
 }

@@ -27,6 +27,7 @@ Feature: Ambiguous Steps
                '^a ambiguous step$' - features/step_definitions/cucumber_steps.js:3
                '^a (.*) step$'      - features/step_definitions/cucumber_steps.js:4
 
+
       1 scenario (1 ambiguous)
       1 step (1 ambiguous)
       <duration-stat>
