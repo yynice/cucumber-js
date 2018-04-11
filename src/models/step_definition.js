@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import DataTable from './data_table'
 import { buildStepArgumentIterator } from '../step_arguments'
 
@@ -52,5 +53,9 @@ export default class StepDefinition {
 
   getValidCodeLengths(parameters) {
     return [parameters.length, parameters.length + 1]
+  }
+
+  toConfig() {
+    return _.pick(this, ['id', 'line', 'pattern', 'uri'])
   }
 }

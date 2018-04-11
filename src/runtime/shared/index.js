@@ -236,12 +236,18 @@ export default class Runtime {
         baseDirectory: this.cwd,
         featuresConfig: this.featuresConfig,
         runtimeConfig: this.runtimeConfig,
-        supportCodeConfig: _.pick(this.supportCodeLibrary, [
-          'afterTestCaseHookDefinitions',
-          'beforeTestCaseHookDefinitions',
-          'parameterTypes',
-          'stepDefinitions',
-        ]),
+        supportCodeConfig: {
+          afterTestCaseHookDefinitions: this.supportCodeLibrary.afterTestCaseHookDefinitions.map(
+            d => d.toConfig()
+          ),
+          beforeTestCaseHookDefinitions: this.supportCodeLibrary.beforeTestCaseHookDefinitions.map(
+            d => d.toConfig()
+          ),
+          parameterTypes: this.supportCodeLibrary.parameterTypes,
+          stepDefinitions: this.supportCodeLibrary.stepDefinitions.map(d =>
+            d.toConfig()
+          ),
+        },
         type: 'start',
       }) + '\n'
     )

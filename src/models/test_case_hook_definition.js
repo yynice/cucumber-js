@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import StepDefinition from './step_definition'
 
 export default class TestCaseHookDefinition extends StepDefinition {
@@ -11,5 +12,12 @@ export default class TestCaseHookDefinition extends StepDefinition {
 
   getValidCodeLengths() {
     return [0, 1, 2]
+  }
+
+  toConfig() {
+    return {
+      tagExpression: this.options.tags,
+      ..._.pick(this, ['id', 'line', 'uri']),
+    }
   }
 }
