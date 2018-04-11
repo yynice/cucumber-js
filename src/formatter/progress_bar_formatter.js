@@ -48,6 +48,7 @@ export default class ProgressBarFormatter extends Formatter {
       this.progressBar.interrupt(
         formatIssue({
           colorFns: this.colorFns,
+          cwd: this.cwd,
           gherkinDocument,
           number: this.issueCount,
           pickle,
