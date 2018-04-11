@@ -137,7 +137,9 @@ export default class JsonFormatter extends Formatter {
       data.hidden = true
     }
     if (testStep.actionLocation) {
-      data.match = { location: formatLocation(testStep.actionLocation) }
+      data.match = {
+        location: formatLocation(testStep.actionLocation, this.cwd),
+      }
     }
     if (testStep.result) {
       const { result: { exception, status } } = testStep

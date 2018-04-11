@@ -2,10 +2,10 @@ import _ from 'lodash'
 import { formatLocation } from '../location_helpers'
 import { getStepLineToPickledStepMap } from '../pickle_parser'
 
-function buildEmptyMapping(stepDefinitions) {
+function buildEmptyMapping(stepDefinitions, cwd) {
   const mapping = {}
   stepDefinitions.forEach(stepDefinition => {
-    const location = formatLocation(stepDefinition)
+    const location = formatLocation(stepDefinition, cwd)
     mapping[location] = {
       line: stepDefinition.line,
       pattern: stepDefinition.pattern,
@@ -16,8 +16,8 @@ function buildEmptyMapping(stepDefinitions) {
   return mapping
 }
 
-function buildMapping({ stepDefinitions, eventDataCollector }) {
-  const mapping = buildEmptyMapping(stepDefinitions)
+function buildMapping({ cwd, stepDefinitions, eventDataCollector }) {
+  const mapping = buildEmptyMapping(stepDefinitions, cwd)
   _.each(eventDataCollector.testCaseMap, testCase => {
     const { pickle } = eventDataCollector.getTestCaseData(
       testCase.sourceLocation
@@ -26,7 +26,7 @@ function buildMapping({ stepDefinitions, eventDataCollector }) {
     testCase.steps.forEach(testStep => {
       const { actionLocation, sourceLocation, result: { duration } } = testStep
       if (actionLocation && sourceLocation) {
-        const location = formatLocation(actionLocation)
+        const location = formatLocation(actionLocation, cwd)
         const match = {
           line: sourceLocation.line,
           text: stepLineToPickledStepMap[sourceLocation.line].text,
@@ -72,7 +72,7 @@ function buildResult(mapping) {
     .value()
 }
 
-export function getUsage({ stepDefinitions, eventDataCollector }) {
-  const mapping = buildMapping({ stepDefinitions, eventDataCollector })
+export function getUsage({ cwd, stepDefinitions, eventDataCollector }) {
+  const mapping = buildMapping({ cwd, stepDefinitions, eventDataCollector })
   return buildResult(mapping)
 }

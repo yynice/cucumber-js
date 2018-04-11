@@ -1,16 +1,15 @@
-import _ from 'lodash'
-import { formatLocation } from '../../formatter/helpers'
+import { formatLocation } from '../formatter/helpers'
 import Promise from 'bluebird'
-import StackTraceFilter from '../stack_trace_filter'
-import UserCodeRunner from '../../user_code_runner'
+import StackTraceFilter from './stack_trace_filter'
+import UserCodeRunner from '../user_code_runner'
 import VError from 'verror'
 import childProcess from 'child_process'
 import readline from 'readline'
 import commandTypes from './command_types'
-import AttachmentManager from '../attachment_manager'
-import { buildStepArgumentIterator } from '../../step_arguments'
-import DataTable from '../../models/data_table'
-import StepRunner from '../step_runner'
+import AttachmentManager from './attachment_manager'
+import { buildStepArgumentIterator } from '../step_arguments'
+import DataTable from '../models/data/table'
+import StepRunner from './step_runner'
 
 export default class Runtime {
   // featuresConfig - {absolutePaths, defaultLanguage, orderSeed, filters}
@@ -18,6 +17,7 @@ export default class Runtime {
   //     lines - { [featurePath]: [line1, line2, ...], ... }
   // runtimeConfig - {isDryRun, isFailFast, isStrict}
   constructor({
+    cwd,
     eventBroadcaster,
     featuresConfig,
     runtimeConfig,
@@ -25,6 +25,7 @@ export default class Runtime {
     filterStacktraces,
     worldParameters,
   }) {
+    this.cwd = cwd
     this.eventBroadcaster = eventBroadcaster
     this.featuresConfig = featuresConfig
     this.runtimeConfig = runtimeConfig
@@ -45,9 +46,9 @@ export default class Runtime {
         const transform =
           parameterTypeNameToTransform[parameterTypeName] ||
           function(c) {
-            return c
+            return c[0]
           }
-        return transform.apply(world, captures)
+        return transform.call(world, captures)
       }
     )
     const iterator = buildStepArgumentIterator({
@@ -69,7 +70,7 @@ export default class Runtime {
           this.supportCodeLibrary.defaultTimeout,
       })
       if (error) {
-        const location = formatLocation(hookDefinition)
+        const location = formatLocation(hookDefinition, this.cwd)
         throw new VError(
           error,
           `${name} hook errored, process exiting: ${location}`
@@ -82,10 +83,7 @@ export default class Runtime {
     return StepRunner.run({
       defaultTimeout: this.supportCodeLibrary.defaultTimeout,
       parameters: [], // todo get hook parameter
-      stepDefinition: _.find(
-        this.supportCodeLibrary.beforeTestCaseHookDefinitions,
-        ['id', testCaseHookDefinitionId]
-      ),
+      stepDefinition: null, // todo get proper hook definition
       world: this.testCases[testCaseId].world,
     })
   }
@@ -94,37 +92,19 @@ export default class Runtime {
     return StepRunner.run({
       defaultTimeout: this.supportCodeLibrary.defaultTimeout,
       parameters: [], // todo get hook parameter
-      stepDefinition: _.find(
-        this.supportCodeLibrary.afterTestCaseHookDefinitions,
-        ['id', testCaseHookDefinitionId]
-      ),
+      stepDefinition: null, // todo get proper hook definition
       world: this.testCases[testCaseId].world,
     })
   }
 
-  runStep({
-    id,
-    testCaseId,
-    stepDefinitionId,
-    pickleArguments,
-    patternMatches,
-  }) {
-    const parameters = this.getStepParameters({
-      pickleArguments,
-      patternMatches,
-      parameterTypeNameToTransform: this.supportCodeLibrary
-        .parameterTypeNameToTransform,
-      world: this.testCases[testCaseId].world,
-    })
-    return StepRunner.run({
+  async runStep(testCaseId, stepId, parameters) {
+    const result = await StepRunner.run({
       defaultTimeout: this.supportCodeLibrary.defaultTimeout,
       parameters,
-      stepDefinition: _.find(this.supportCodeLibrary.stepDefinitions, [
-        'id',
-        stepDefinitionId,
-      ]),
+      stepDefinition: null, // todo get proper step definition
       world: this.testCases[testCaseId].world,
     })
+    this.sendActionComplete({ hookOrStepResult: result })
   }
 
   async parseCommand(line) {
@@ -169,24 +149,25 @@ export default class Runtime {
         })
         break
       case commandTypes.RUN_TEST_STEP:
-        const stepResult = await this.runStep(command)
+        const parameters = this.getStepParameters({
+          pickleArguments: command.arguments,
+          patternMatches: command.patternMatches,
+          parameterTypeNameToTransform: this.supportCodeLibrary
+            .parameterTypeNameToTransform,
+          world: this.testCases[command.testCaseId].world,
+        })
+        const stepResult = await this.runStep(
+          command.testCaseId,
+          command.stepDefinitionId,
+          parameters
+        )
         this.sendActionComplete({
           responseTo: command.id,
           hookOrStepResult: stepResult,
         })
         break
-      case commandTypes.GENERATE_SNIPPET:
-        this.sendActionComplete({
-          responseTo: command.id,
-          snippet: '', // TODO create snippet
-        })
-        break
       case commandTypes.EVENT:
-        this.eventBroadcaster.emit(command.event.type, command.event)
-        if (command.event.type === 'test-run-finished') {
-          this.result = command.event.result
-          this.pickleRunner.stdin.end()
-        }
+        this.eventBroadcaster.emit(command.event.type, command.event.data)
         break
       case commandTypes.ERROR:
         throw new Error(command.message)
@@ -204,18 +185,19 @@ export default class Runtime {
     )
   }
 
-  run(done) {
-    if (this.filterStacktraces) {
+  start(done) {
+    if (this.options.filterStacktraces) {
       this.stackTraceFilter.filter()
     }
     this.pickleRunner = childProcess.spawn('cucumber-pickle-runner', [], {
+      env: {},
       stdio: ['pipe', 'pipe', process.stderr],
     })
-    this.pickleRunner.on('exit', () => {
+    this.childProcess.on('exit', () => {
       if (!this.result) {
         throw new Error('Pickle runner exited unexpectedly')
       }
-      if (this.filterStacktraces) {
+      if (this.options.filterStacktraces) {
         this.stackTraceFilter.unfilter()
       }
       done(this.result.success)
@@ -233,12 +215,6 @@ export default class Runtime {
       JSON.stringify({
         featuresConfig: this.featuresConfig,
         runtimeConfig: this.runtimeConfig,
-        supportCodeConfig: _.pick(this.supportCodeLibrary, [
-          'afterTestCaseHookDefinitions',
-          'beforeTestCaseHookDefinitions',
-          'parameterTypes',
-          'stepDefinitions',
-        ]),
         type: 'start',
       }) + '\n'
     )

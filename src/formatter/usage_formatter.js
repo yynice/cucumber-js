@@ -37,7 +37,7 @@ export default class UsageFormatter extends Formatter {
       } else {
         col2.push('UNUSED')
       }
-      const col3 = [formatLocation({ line, uri })]
+      const col3 = [formatLocation({ line, uri }, this.cwd)]
       _.take(matches, 5).forEach(match => {
         col1.push(`  ${match.text}`)
         if (isFinite(match.duration)) {
@@ -45,7 +45,7 @@ export default class UsageFormatter extends Formatter {
         } else {
           col2.push('-')
         }
-        col3.push(formatLocation(match))
+        col3.push(formatLocation(match, this.cwd))
       })
       if (matches.length > 5) {
         col1.push(`  ${matches.length - 5} more`)
