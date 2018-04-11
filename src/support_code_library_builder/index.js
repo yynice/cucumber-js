@@ -1,24 +1,22 @@
 import _ from 'lodash'
 import util from 'util'
-import TransformLookupBuilder from './parameter_type_registry_builder'
 import {
-  defineTestRunHook,
-  defineParameterType,
-  defineTestCaseHook,
-  defineStep,
-} from './define_helpers'
+  buildStepDefinition,
+  buildTestCaseHookDefinition,
+  buildTestRunHookDefinition,
+} from './build_helpers'
 import { wrapDefinitions } from './finalize_helpers'
 
 export class SupportCodeLibraryBuilder {
   constructor() {
     this.nextId = 1
     this.methods = {
-      defineParameterType: defineParameterType(this),
-      After: defineTestCaseHook(this, 'afterTestCaseHookDefinitions'),
-      AfterAll: defineTestRunHook(this, 'afterTestRunHookDefinitions'),
-      Before: defineTestCaseHook(this, 'beforeTestCaseHookDefinitions'),
-      BeforeAll: defineTestRunHook(this, 'beforeTestRunHookDefinitions'),
-      defineStep: defineStep(this),
+      defineParameterType: this.defineParameterType.bind(this),
+      After: this.defineTestCaseHook('afterTestCaseHookDefinitions'),
+      AfterAll: this.defineTestRunHook('afterTestRunHookDefinitions'),
+      Before: this.defineTestCaseHook('beforeTestCaseHookDefinitions'),
+      BeforeAll: this.defineTestRunHook('beforeTestRunHookDefinitions'),
+      defineStep: this.defineStep.bind(this),
       defineSupportCode: util.deprecate(fn => {
         fn(this.methods)
       }, 'cucumber: defineSupportCode is deprecated. Please require/import the individual methods instead.'),
@@ -33,6 +31,65 @@ export class SupportCodeLibraryBuilder {
       },
     }
     this.methods.Given = this.methods.When = this.methods.Then = this.methods.defineStep
+  }
+
+  defineParameterType({
+    name,
+    typeName,
+    regexp,
+    transformer,
+    useForSnippets,
+    preferForRegexpMatch,
+  }) {
+    const getTypeName = util.deprecate(
+      () => typeName,
+      'Cucumber defineParameterType: Use name instead of typeName'
+    )
+    const _name = name || getTypeName()
+    if (typeof useForSnippets !== 'boolean') useForSnippets = true
+    if (typeof preferForRegexpMatch !== 'boolean') preferForRegexpMatch = false
+    this.options.parameterTypes.push({
+      name: _name,
+      regexps: Array(regexp),
+      useForSnippets,
+      preferForRegexpMatch,
+    })
+    this.options.parameterTypeNameToTransform[_name] = transformer
+  }
+
+  defineStep(pattern, options, code) {
+    const stepDefinition = buildStepDefinition({
+      id: this.getNextId().toString(),
+      pattern,
+      options,
+      code,
+      cwd: this.cwd,
+    })
+    this.options.stepDefinitions.push(stepDefinition)
+  }
+
+  defineTestCaseHook(collectionName) {
+    return (options, code) => {
+      const hookDefinition = buildTestCaseHookDefinition({
+        id: this.getNextId().toString(),
+        options,
+        code,
+        cwd: this.cwd,
+      })
+      this.options[collectionName].push(hookDefinition)
+    }
+  }
+
+  defineTestRunHook(collectionName) {
+    return (options, code) => {
+      const hookDefinition = buildTestRunHookDefinition({
+        id: this.getNextId().toString(),
+        options,
+        code,
+        cwd: this.cwd,
+      })
+      this.options[collectionName].push(hookDefinition)
+    }
   }
 
   getNextId() {
@@ -71,7 +128,7 @@ export class SupportCodeLibraryBuilder {
       defaultTimeout: 5000,
       definitionFunctionWrapper: null,
       stepDefinitions: [],
-      parameterTypeConfigs: [],
+      parameterTypes: [],
       parameterTypeNameToTransform: {},
       World({ attach, parameters }) {
         this.attach = attach
