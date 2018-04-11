@@ -14,11 +14,11 @@ export function buildTestCaseHookDefinition({ id, options, code, cwd }) {
     code = options
     options = {}
   }
-  const { line, uri } = getDefinitionLineAndUri(cwd)
+  const { line, uri } = getDefinitionLineAndUri()
   validateArguments({
     args: { code, options },
     fnName: 'defineTestCaseHook',
-    location: formatLocation({ line, uri }),
+    location: formatLocation({ line, uri }, cwd),
   })
   return new TestCaseHookDefinition({
     code,
@@ -36,11 +36,11 @@ export function buildTestRunHookDefinition({ id, options, code, cwd }) {
     code = options
     options = {}
   }
-  const { line, uri } = getDefinitionLineAndUri(cwd)
+  const { line, uri } = getDefinitionLineAndUri()
   validateArguments({
     args: { code, options },
     fnName: 'defineTestRunHook',
-    location: formatLocation({ line, uri }),
+    location: formatLocation({ line, uri }, cwd),
   })
   return new TestRunHookDefinition({
     code,
@@ -56,11 +56,11 @@ export function buildStepDefinition({ id, pattern, options, code, cwd }) {
     code = options
     options = {}
   }
-  const { line, uri } = getDefinitionLineAndUri(cwd)
+  const { line, uri } = getDefinitionLineAndUri()
   validateArguments({
     args: { code, pattern, options },
     fnName: 'defineStep',
-    location: formatLocation({ line, uri }),
+    location: formatLocation({ line, uri }, cwd),
   })
   return new StepDefinition({
     id,
@@ -76,7 +76,7 @@ const projectPath = path.join(__dirname, '..', '..')
 const projectSrcPath = path.join(projectPath, 'src')
 const projectLibPath = path.join(projectPath, 'lib')
 
-function getDefinitionLineAndUri(cwd) {
+function getDefinitionLineAndUri() {
   let line = 'unknown'
   let uri = 'unknown'
   const stackframes = StackTrace.getSync()
@@ -90,9 +90,6 @@ function getDefinitionLineAndUri(cwd) {
   if (stackframe) {
     line = stackframe.getLineNumber()
     uri = stackframe.getFileName()
-    if (uri) {
-      uri = path.relative(cwd, uri)
-    }
   }
   return { line, uri }
 }
