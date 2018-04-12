@@ -48,7 +48,7 @@ Then(/^the step "([^"]*)" failed with:$/, function(name, errorMessage) {
     stepPredicate: ['name', name],
   })
   expect(step.result.status).to.eql('failed')
-  expect(step.result.error_message).to.include(errorMessage)
+  expect(step.result.message).to.include(errorMessage)
 })
 
 Then(/^all steps have status "([^"]*)"$/, function(status) {

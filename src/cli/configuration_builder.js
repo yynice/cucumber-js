@@ -49,7 +49,7 @@ export default class ConfigurationBuilder {
           tagExpression: this.options.tags,
           lines: this.getFeatureUriToLinesMapping(unexpandedFeaturePaths),
         },
-        order: this.options.order,
+        order: this.getFeaturesOrder(),
       },
       filterStacktraces: !this.options.backtrace,
       formats: this.getFormats(),
@@ -110,6 +110,26 @@ export default class ConfigurationBuilder {
       return path.relative(this.cwd, featureDir)
     })
     return _.uniq(featureDirs)
+  }
+
+  getFeaturesOrder() {
+    let [type, seed] = this.options.order.split(':')
+    switch (type) {
+      case 'defined':
+        return { type }
+      case 'random':
+        if (!seed) {
+          seed = Math.floor(Math.random() * 1000 * 1000).toString()
+          console.warn(`Random order using seed: ${seed}`)
+        } else {
+          seed = parseInt(seed)
+        }
+        return { type, seed }
+      default:
+        throw new Error(
+          'Unrecgonized order type. Should be `defined` or `random`'
+        )
+    }
   }
 
   getFormatOptions() {

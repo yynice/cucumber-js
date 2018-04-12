@@ -11,6 +11,7 @@ import AttachmentManager from '../attachment_manager'
 import { buildStepArgumentIterator } from '../../step_arguments'
 import DataTable from '../../models/data_table'
 import StepRunner from '../step_runner'
+import path from 'path'
 
 export default class Runtime {
   // featuresConfig - {absolutePaths, defaultLanguage, orderSeed, filters}
@@ -83,7 +84,7 @@ export default class Runtime {
   runBeforeTestCaseHook({ testCaseId, testCaseHookDefinitionId }) {
     return StepRunner.run({
       defaultTimeout: this.supportCodeLibrary.defaultTimeout,
-      parameters: [], // todo get hook parameter
+      parameters: [null], // todo get hook parameter
       stepDefinition: _.find(
         this.supportCodeLibrary.beforeTestCaseHookDefinitions,
         ['id', testCaseHookDefinitionId]
@@ -95,7 +96,7 @@ export default class Runtime {
   runAfterTestCaseHook({ id, testCaseId, testCaseHookDefinitionId }) {
     return StepRunner.run({
       defaultTimeout: this.supportCodeLibrary.defaultTimeout,
-      parameters: [], // todo get hook parameter
+      parameters: [null], // todo get hook parameter
       stepDefinition: _.find(
         this.supportCodeLibrary.afterTestCaseHookDefinitions,
         ['id', testCaseHookDefinitionId]
@@ -196,6 +197,17 @@ export default class Runtime {
         if (command.event.type === 'test-run-finished') {
           this.result = command.event.result
           this.pickleRunner.stdin.end()
+        }
+        if (
+          command.event.type === 'attachment' &&
+          command.event.media.type === 'text/x.cucumber.stacktrace+plain'
+        ) {
+          throw new Error(
+            `Parse error in '${path.relative(
+              this.cwd,
+              command.event.source.uri
+            )}': ${command.event.data}`
+          )
         }
         break
       case commandTypes.ERROR:

@@ -43,7 +43,7 @@ Feature: Set the execution order
     When I run cucumber-js with `--order random:234119`
     Then it runs the scenarios:
       | NAME                |
-      | second scenario - Z |
       | second scenario - X |
-      | second scenario - Y |
       | first scenario      |
+      | second scenario - Z |
+      | second scenario - Y |
