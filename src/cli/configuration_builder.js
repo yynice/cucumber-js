@@ -43,7 +43,7 @@ export default class ConfigurationBuilder {
     return {
       featuresConfig: {
         absolutePaths: featurePaths,
-        defaultLanguage: this.options.language,
+        language: this.options.language,
         filters: {
           names: this.options.name,
           tagExpression: this.options.tags,
