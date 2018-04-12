@@ -71,7 +71,7 @@ export default class Runtime {
           this.supportCodeLibrary.defaultTimeout,
       })
       if (error) {
-        const location = formatLocation(hookDefinition)
+        const location = formatLocation(hookDefinition, this.cwd)
         throw new VError(
           error,
           `${name} hook errored, process exiting: ${location}`
@@ -129,7 +129,7 @@ export default class Runtime {
     })
   }
 
-  async parseCommand(line) {
+  async parseCommand(line, done) {
     const command = JSON.parse(line)
     switch (command.type) {
       case commandTypes.RUN_BEFORE_TEST_RUN_HOOKS:
@@ -145,10 +145,15 @@ export default class Runtime {
         break
       case commandTypes.INITIALIZE_TEST_CASE:
         const attachmentManager = new AttachmentManager(({ data, media }) => {
-          this.testCases[command.testCaseId] = { data, media }
+          this.eventBroadcaster.emit('test-step-attachment', {
+            index: this.testCases[command.testCaseId].currentStepIndex,
+            testCase: command.testCase,
+            data,
+            media,
+          })
         })
         this.testCases[command.testCaseId] = {
-          attachmentManager,
+          currentStepIndex: 0,
           world: new this.supportCodeLibrary.World({
             attach: ::attachmentManager.create,
             parameters: this.worldParameters,
@@ -158,6 +163,7 @@ export default class Runtime {
         break
       case commandTypes.RUN_BEFORE_TEST_CASE_HOOK:
         const beforeHookResult = await this.runBeforeTestCaseHook(command)
+        this.testCases[command.testCaseId].currentStepIndex += 1
         this.sendActionComplete({
           responseTo: command.id,
           hookOrStepResult: beforeHookResult,
@@ -165,6 +171,7 @@ export default class Runtime {
         break
       case commandTypes.RUN_AFTER_TEST_CASE_HOOK:
         const afterHookResult = await this.runAfterTestCaseHook(command)
+        this.testCases[command.testCaseId].currentStepIndex += 1
         this.sendActionComplete({
           responseTo: command.id,
           hookOrStepResult: afterHookResult,
@@ -172,6 +179,7 @@ export default class Runtime {
         break
       case commandTypes.RUN_TEST_STEP:
         const stepResult = await this.runStep(command)
+        this.testCases[command.testCaseId].currentStepIndex += 1
         this.sendActionComplete({
           responseTo: command.id,
           hookOrStepResult: stepResult,
@@ -206,50 +214,58 @@ export default class Runtime {
     )
   }
 
-  run(done) {
-    if (this.filterStacktraces) {
-      this.stackTraceFilter.filter()
-    }
-    this.pickleRunner = childProcess.spawn('cucumber-pickle-runner', [], {
-      stdio: ['pipe', 'pipe', process.stderr],
-    })
-    this.pickleRunner.on('exit', () => {
-      if (!this.result) {
-        throw new Error('Pickle runner exited unexpectedly')
-      }
+  run() {
+    return new Promise((resolve, reject) => {
       if (this.filterStacktraces) {
-        this.stackTraceFilter.unfilter()
+        this.stackTraceFilter.filter()
       }
-      done(this.result.success)
+      this.pickleRunner = childProcess.spawn('cucumber-pickle-runner', [], {
+        stdio: ['pipe', 'pipe', process.stderr],
+      })
+      this.pickleRunner.on('exit', () => {
+        if (!this.result) {
+          reject(new Error('Pickle runner exited unexpectedly'))
+          return
+        }
+        if (this.filterStacktraces) {
+          this.stackTraceFilter.unfilter()
+        }
+        resolve(this.result.success)
+      })
+      const rl = readline.createInterface({ input: this.pickleRunner.stdout })
+      rl.on('line', async line => {
+        try {
+          await this.parseCommand(line)
+        } catch (error) {
+          reject(error)
+          this.pickleRunner.kill()
+        }
+      })
+      rl.on('close', () => {
+        if (!this.result) {
+          reject(new Error('Pickle runner closed stdout unexpectedly'))
+        }
+      })
+      this.pickleRunner.stdin.write(
+        JSON.stringify({
+          baseDirectory: this.cwd,
+          featuresConfig: this.featuresConfig,
+          runtimeConfig: this.runtimeConfig,
+          supportCodeConfig: {
+            afterTestCaseHookDefinitions: this.supportCodeLibrary.afterTestCaseHookDefinitions.map(
+              d => d.toConfig()
+            ),
+            beforeTestCaseHookDefinitions: this.supportCodeLibrary.beforeTestCaseHookDefinitions.map(
+              d => d.toConfig()
+            ),
+            parameterTypes: this.supportCodeLibrary.parameterTypes,
+            stepDefinitions: this.supportCodeLibrary.stepDefinitions.map(d =>
+              d.toConfig()
+            ),
+          },
+          type: 'start',
+        }) + '\n'
+      )
     })
-    const rl = readline.createInterface({ input: this.pickleRunner.stdout })
-    rl.on('line', line => {
-      this.parseCommand(line)
-    })
-    rl.on('close', () => {
-      if (!this.result) {
-        throw new Error('Pickle runner closed stdout unexpectedly')
-      }
-    })
-    this.pickleRunner.stdin.write(
-      JSON.stringify({
-        baseDirectory: this.cwd,
-        featuresConfig: this.featuresConfig,
-        runtimeConfig: this.runtimeConfig,
-        supportCodeConfig: {
-          afterTestCaseHookDefinitions: this.supportCodeLibrary.afterTestCaseHookDefinitions.map(
-            d => d.toConfig()
-          ),
-          beforeTestCaseHookDefinitions: this.supportCodeLibrary.beforeTestCaseHookDefinitions.map(
-            d => d.toConfig()
-          ),
-          parameterTypes: this.supportCodeLibrary.parameterTypes,
-          stepDefinitions: this.supportCodeLibrary.stepDefinitions.map(d =>
-            d.toConfig()
-          ),
-        },
-        type: 'start',
-      }) + '\n'
-    )
   }
 }

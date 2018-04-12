@@ -90,13 +90,7 @@ export default class Cli {
       filterStacktraces: configuration.filterStacktraces,
       worldParameters: configuration.worldParameters,
     })
-    let success
-    await new Promise(resolve => {
-      runtime.run(s => {
-        success = s
-        resolve()
-      })
-    })
+    const success = await runtime.run()
     await cleanup()
     return {
       shouldExitImmediately: configuration.shouldExitImmediately,
