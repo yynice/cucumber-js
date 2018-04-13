@@ -5,7 +5,7 @@ export default class JavaScriptSnippetSyntax {
     this.snippetInterface = snippetInterface
   }
 
-  build({ comment, generatedExpressions, functionName, stepParameterNames }) {
+  build({ comment, generatedExpressions, stepParameterNames }) {
     let functionKeyword = 'function '
     if (this.snippetInterface === 'async-await') {
       functionKeyword = 'async ' + functionKeyword
@@ -29,7 +29,7 @@ export default class JavaScriptSnippetSyntax {
         if (this.snippetInterface === 'callback') {
           allParameterNames.push(CALLBACK_NAME)
         }
-        return `${prefix + functionName}('${generatedExpression.source.replace(
+        return `${prefix}{{keywordType}}('${generatedExpression.text.replace(
           /'/g,
           "\\'"
         )}', ${functionKeyword}(${allParameterNames.join(', ')}) {\n`

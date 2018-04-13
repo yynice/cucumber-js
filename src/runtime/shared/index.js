@@ -23,6 +23,7 @@ export default class Runtime {
     eventBroadcaster,
     featuresConfig,
     runtimeConfig,
+    stepDefinitionSnippetBuilder,
     supportCodeLibrary,
     filterStacktraces,
     worldParameters,
@@ -33,6 +34,7 @@ export default class Runtime {
     this.runtimeConfig = runtimeConfig
     this.filterStacktraces = filterStacktraces
     this.stackTraceFilter = new StackTraceFilter()
+    this.stepDefinitionSnippetBuilder = stepDefinitionSnippetBuilder
     this.supportCodeLibrary = supportCodeLibrary
     this.worldParameters = worldParameters
     this.testCases = {}
@@ -192,7 +194,7 @@ export default class Runtime {
       case commandTypes.GENERATE_SNIPPET:
         this.sendActionComplete({
           responseTo: command.id,
-          snippet: '', // TODO create snippet
+          snippet: this.stepDefinitionSnippetBuilder.build(command),
         })
         break
       case commandTypes.EVENT:

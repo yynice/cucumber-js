@@ -9,7 +9,7 @@ export function getStepMessage({ keywordType, testStep }) {
       return testStep.result.message
     case Status.UNDEFINED:
       return testStep.result.message.replace(
-        '{{keyword}}',
+        '{{keywordType}}',
         getUndefinedStepResultKeyword(keywordType)
       )
   }

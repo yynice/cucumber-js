@@ -1,48 +1,45 @@
-import { CucumberExpressionGenerator } from 'cucumber-expressions'
-import { KeywordType } from '../helpers'
 import { buildStepArgumentIterator } from '../../step_arguments'
 
 export default class StepDefinitionSnippetBuilder {
-  constructor({ snippetSyntax, parameterTypeRegistry }) {
+  constructor({ snippetSyntax }) {
     this.snippetSyntax = snippetSyntax
-    this.cucumberExpressionGenerator = new CucumberExpressionGenerator(
-      parameterTypeRegistry
-    )
   }
 
-  build({ keywordType, pickleStep }) {
+  parameterTypeNamesToParameterNames(parameterTypeNames) {
+    const mapping = {}
+    return parameterTypeNames.map(typeName => {
+      if (!mapping[typeName]) {
+        mapping[typeName] = 1
+      }
+      const result = `${typeName}${mapping[typeName]}`
+      mapping[typeName] += 1
+      return result
+    })
+  }
+
+  build({ generatedExpressions, pickleArguments }) {
+    const updatedGeneratedExpressions = generatedExpressions.map(
+      ({ text, parameterTypeNames }) => {
+        return {
+          text,
+          parameterNames: this.parameterTypeNamesToParameterNames(
+            parameterTypeNames
+          ),
+        }
+      }
+    )
     const comment =
       'Write code here that turns the phrase above into concrete actions'
-    const functionName = this.getFunctionName(keywordType)
-    const generatedExpressions = this.cucumberExpressionGenerator.generateExpressions(
-      pickleStep.text,
-      true
+    const stepParameterNames = pickleArguments.map(
+      buildStepArgumentIterator({
+        dataTable: () => 'dataTable',
+        docString: () => 'docString',
+      })
     )
-    const stepParameterNames = this.getStepParameterNames(pickleStep)
     return this.snippetSyntax.build({
       comment,
-      functionName,
-      generatedExpressions,
+      generatedExpressions: updatedGeneratedExpressions,
       stepParameterNames,
     })
-  }
-
-  getFunctionName(keywordType) {
-    switch (keywordType) {
-      case KeywordType.EVENT:
-        return 'When'
-      case KeywordType.OUTCOME:
-        return 'Then'
-      case KeywordType.PRECONDITION:
-        return 'Given'
-    }
-  }
-
-  getStepParameterNames(step) {
-    const iterator = buildStepArgumentIterator({
-      dataTable: () => 'dataTable',
-      docString: () => 'docString',
-    })
-    return step.arguments.map(iterator)
   }
 }

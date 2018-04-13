@@ -12,17 +12,16 @@ describe('JavascriptSnippetSyntax', () => {
       it('returns the proper snippet', function() {
         const actual = this.syntax.build({
           comment: 'comment',
-          functionName: 'functionName',
           generatedExpressions: [
             {
-              source: 'pattern',
-              parameterNames: ['arg1', 'arg2'],
+              text: 'pattern',
+              parameterNames: ['typeA1', 'typeA2'],
             },
           ],
           stepParameterNames: [],
         })
         const expected =
-          "functionName('pattern', function (arg1, arg2, callback) {\n" +
+          "{{keywordType}}('pattern', function (typeA1, typeA2, callback) {\n" +
           '  // comment\n' +
           "  callback(null, 'pending');\n" +
           '});'
@@ -38,17 +37,16 @@ describe('JavascriptSnippetSyntax', () => {
       it('returns the proper snippet', function() {
         const actual = this.syntax.build({
           comment: 'comment',
-          functionName: 'functionName',
           generatedExpressions: [
             {
-              source: 'pattern',
-              parameterNames: ['arg1', 'arg2'],
+              text: 'pattern',
+              parameterNames: ['typeA1', 'typeA2'],
             },
           ],
           stepParameterNames: [],
         })
         const expected =
-          "functionName('pattern', function *(arg1, arg2) {\n" +
+          "{{keywordType}}('pattern', function *(typeA1, typeA2) {\n" +
           '  // comment\n' +
           "  return 'pending';\n" +
           '});'
@@ -64,17 +62,16 @@ describe('JavascriptSnippetSyntax', () => {
       it('returns the proper snippet', function() {
         const actual = this.syntax.build({
           comment: 'comment',
-          functionName: 'functionName',
           generatedExpressions: [
             {
-              source: 'pattern',
-              parameterNames: ['arg1', 'arg2'],
+              text: 'pattern',
+              parameterNames: ['typeA1', 'typeA2'],
             },
           ],
           stepParameterNames: [],
         })
         const expected =
-          "functionName('pattern', function (arg1, arg2) {\n" +
+          "{{keywordType}}('pattern', function (typeA1, typeA2) {\n" +
           '  // comment\n' +
           "  return 'pending';\n" +
           '});'
@@ -90,17 +87,16 @@ describe('JavascriptSnippetSyntax', () => {
       it('returns the proper snippet', function() {
         const actual = this.syntax.build({
           comment: 'comment',
-          functionName: 'functionName',
           generatedExpressions: [
             {
-              source: 'pattern',
-              parameterNames: ['arg1', 'arg2'],
+              text: 'pattern',
+              parameterNames: ['typeA1', 'typeA2'],
             },
           ],
           stepParameterNames: [],
         })
         const expected =
-          "functionName('pattern', function (arg1, arg2) {\n" +
+          "{{keywordType}}('pattern', function (typeA1, typeA2) {\n" +
           '  // comment\n' +
           "  return 'pending';\n" +
           '});'
@@ -116,17 +112,16 @@ describe('JavascriptSnippetSyntax', () => {
       it('returns the proper snippet', function() {
         const actual = this.syntax.build({
           comment: 'comment',
-          functionName: 'functionName',
           generatedExpressions: [
             {
-              source: "pattern'",
-              parameterNames: ['arg1', 'arg2'],
+              text: "pattern'",
+              parameterNames: ['typeA1', 'typeA2'],
             },
           ],
           stepParameterNames: [],
         })
         const expected =
-          "functionName('pattern\\'', function (arg1, arg2) {\n" +
+          "{{keywordType}}('pattern\\'', function (typeA1, typeA2) {\n" +
           '  // comment\n' +
           "  return 'pending';\n" +
           '});'
@@ -142,27 +137,26 @@ describe('JavascriptSnippetSyntax', () => {
       it('returns the snippet with the other choices commented out', function() {
         const actual = this.syntax.build({
           comment: 'comment',
-          functionName: 'functionName',
           generatedExpressions: [
             {
-              parameterNames: ['argA', 'argB'],
-              source: 'pattern1',
+              text: 'pattern1',
+              parameterNames: ['typeA1', 'typeA2'],
             },
             {
-              parameterNames: ['argC', 'argD'],
-              source: 'pattern2',
+              text: 'pattern2',
+              parameterNames: ['typeB1', 'typeC1'],
             },
             {
-              parameterNames: ['argE', 'argF'],
-              source: 'pattern3',
+              text: 'pattern3',
+              parameterNames: ['typeD1', 'typeD2'],
             },
           ],
           stepParameterNames: [],
         })
         const expected =
-          "functionName('pattern1', function (argA, argB) {\n" +
-          "// functionName('pattern2', function (argC, argD) {\n" +
-          "// functionName('pattern3', function (argE, argF) {\n" +
+          "{{keywordType}}('pattern1', function (typeA1, typeA2) {\n" +
+          "// {{keywordType}}('pattern2', function (typeB1, typeC1) {\n" +
+          "// {{keywordType}}('pattern3', function (typeD1, typeD2) {\n" +
           '  // comment\n' +
           "  return 'pending';\n" +
           '});'

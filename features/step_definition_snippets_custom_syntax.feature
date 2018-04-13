@@ -29,7 +29,7 @@ Feature: step definition snippets custom syntax
                   allParameterNames.push('done');
                 }
                 var parametersStr = allParameterNames.length > 0 ? '(' + allParameterNames.join(', ') + ') ' : '';
-                return prefix + '@' + opts.functionName + " '" + generatedExpression.source.replace(/'/g, '\\\'') + "', " + parametersStr + '-> \n';
+                return prefix + "@{{keywordType}} '" + generatedExpression.text.replace(/'/g, '\\\'') + "', " + parametersStr + '-> \n';
               }
             )
             return (

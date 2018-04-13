@@ -11,7 +11,7 @@ Feature: step definition snippets
     Then it fails
     And the output contains the text:
       """
-      Given('a step numbered {int}', function (int) {
+      Given('a step numbered {int}', function (int1) {
         // Write code here that turns the phrase above into concrete actions
         return 'pending';
       });
@@ -28,7 +28,7 @@ Feature: step definition snippets
     Then it fails
     And the output contains the text:
       """
-      Given('a step with {string}', function (string) {
+      Given('a step with {string}', function (string1) {
         // Write code here that turns the phrase above into concrete actions
         return 'pending';
       });
@@ -45,7 +45,7 @@ Feature: step definition snippets
     Then it fails
     And the output contains the text:
       """
-      Given('a step with {string} and {string}', function (string, string2) {
+      Given('a step with {string} and {string}', function (string1, string2) {
         // Write code here that turns the phrase above into concrete actions
         return 'pending';
       });
@@ -64,7 +64,7 @@ Feature: step definition snippets
     Then it fails
     And the output contains the text:
       """
-      Given('a step with {string}', function (string) {
+      Given('a step with {string}', function (string1) {
         // Write code here that turns the phrase above into concrete actions
         return 'pending';
       });

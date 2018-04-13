@@ -10,8 +10,28 @@ import path from 'path'
 import Promise from 'bluebird'
 import Runtime from '../runtime/shared'
 import supportCodeLibraryBuilder from '../support_code_library_builder'
+import JavascriptSnippetSyntax from '../formatter/step_definition_snippet_builder/javascript_snippet_syntax'
+import StepDefinitionSnippetBuilder from '../formatter/step_definition_snippet_builder'
 
 export default class Cli {
+  static getStepDefinitionSnippetBuilder({
+    cwd,
+    snippetInterface,
+    snippetSyntax,
+  }) {
+    if (!snippetInterface) {
+      snippetInterface = 'synchronous'
+    }
+    let Syntax = JavascriptSnippetSyntax
+    if (snippetSyntax) {
+      const fullSyntaxPath = path.resolve(cwd, snippetSyntax)
+      Syntax = require(fullSyntaxPath)
+    }
+    return new StepDefinitionSnippetBuilder({
+      snippetSyntax: new Syntax(snippetInterface),
+    })
+  }
+
   constructor({ argv, cwd, stdout }) {
     this.argv = argv
     this.cwd = cwd
@@ -81,11 +101,15 @@ export default class Cli {
       formats: configuration.formats,
       supportCodeLibrary,
     })
+    const stepDefinitionSnippetBuilder = Cli.getStepDefinitionSnippetBuilder(
+      configuration.formatOptions
+    )
     const runtime = new Runtime({
       cwd: this.cwd,
       eventBroadcaster,
       featuresConfig: configuration.featuresConfig,
       runtimeConfig: configuration.runtimeConfig,
+      stepDefinitionSnippetBuilder,
       supportCodeLibrary: supportCodeLibrary,
       filterStacktraces: configuration.filterStacktraces,
       worldParameters: configuration.worldParameters,
