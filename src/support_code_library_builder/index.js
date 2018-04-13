@@ -48,9 +48,12 @@ export class SupportCodeLibraryBuilder {
     const _name = name || getTypeName()
     if (typeof useForSnippets !== 'boolean') useForSnippets = true
     if (typeof preferForRegexpMatch !== 'boolean') preferForRegexpMatch = false
+    const regexps = (_.isArray(regexp) ? regexp : [regexp]).map(
+      r => (typeof r === 'string' ? r : r.source)
+    )
     this.options.parameterTypes.push({
       name: _name,
-      regexps: Array(regexp),
+      regexps,
       useForSnippets,
       preferForRegexpMatch,
     })
@@ -129,7 +132,10 @@ export class SupportCodeLibraryBuilder {
       definitionFunctionWrapper: null,
       stepDefinitions: [],
       parameterTypes: [],
-      parameterTypeNameToTransform: {},
+      parameterTypeNameToTransform: {
+        int: parseInt,
+        float: parseFloat,
+      },
       World({ attach, parameters }) {
         this.attach = attach
         this.parameters = parameters

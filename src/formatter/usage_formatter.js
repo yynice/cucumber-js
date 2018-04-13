@@ -27,7 +27,7 @@ export default class UsageFormatter extends Formatter {
       },
     })
     usage.forEach(({ line, matches, meanDuration, pattern, uri }) => {
-      const col1 = [pattern.toString()]
+      const col1 = [pattern.source]
       const col2 = []
       if (matches.length > 0) {
         if (isFinite(meanDuration)) {

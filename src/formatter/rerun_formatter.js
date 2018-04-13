@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import Formatter from './'
 import Status from '../status'
+import path from 'path'
 
 const DEFAULT_SEPARATOR = '\n'
 
@@ -25,7 +26,7 @@ export default class RerunFormatter extends Formatter {
 
   logFailedTestCases() {
     const text = _.chain(this.mapping)
-      .map((lines, uri) => `${uri}:${lines.join(':')}`)
+      .map((lines, uri) => `${path.relative(this.cwd, uri)}:${lines.join(':')}`)
       .join(this.separator)
       .value()
     this.log(text)

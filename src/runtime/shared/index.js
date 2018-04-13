@@ -34,23 +34,25 @@ export default class Runtime {
     this.filterStacktraces = filterStacktraces
     this.stackTraceFilter = new StackTraceFilter()
     this.supportCodeLibrary = supportCodeLibrary
+    this.worldParameters = worldParameters
     this.testCases = {}
   }
 
-  getStepParameters({
+  async getStepParameters({
     patternMatches,
     pickleArguments,
     parameterTypeNameToTransform,
     world,
   }) {
-    const stepPatternParameters = patternMatches.map(
+    const stepPatternParameters = await Promise.map(
+      patternMatches,
       ({ captures, parameterTypeName }) => {
         const transform =
           parameterTypeNameToTransform[parameterTypeName] ||
           function(c) {
             return c
           }
-        return transform.apply(world, captures)
+        return Promise.resolve(transform.apply(world, captures))
       }
     )
     const iterator = buildStepArgumentIterator({
@@ -84,7 +86,7 @@ export default class Runtime {
   runBeforeTestCaseHook({ testCaseId, testCaseHookDefinitionId }) {
     return StepRunner.run({
       defaultTimeout: this.supportCodeLibrary.defaultTimeout,
-      parameters: [null], // todo get hook parameter
+      generateParametersFn: () => [null], // todo get hook parameter
       stepDefinition: _.find(
         this.supportCodeLibrary.beforeTestCaseHookDefinitions,
         ['id', testCaseHookDefinitionId]
@@ -93,10 +95,10 @@ export default class Runtime {
     })
   }
 
-  runAfterTestCaseHook({ id, testCaseId, testCaseHookDefinitionId }) {
+  runAfterTestCaseHook({ testCaseId, testCaseHookDefinitionId }) {
     return StepRunner.run({
       defaultTimeout: this.supportCodeLibrary.defaultTimeout,
-      parameters: [null], // todo get hook parameter
+      generateParametersFn: () => [null], // todo get hook parameter
       stepDefinition: _.find(
         this.supportCodeLibrary.afterTestCaseHookDefinitions,
         ['id', testCaseHookDefinitionId]
@@ -105,23 +107,24 @@ export default class Runtime {
     })
   }
 
-  runStep({
-    id,
+  async runStep({
     testCaseId,
     stepDefinitionId,
     pickleArguments,
     patternMatches,
   }) {
-    const parameters = this.getStepParameters({
-      pickleArguments,
-      patternMatches,
-      parameterTypeNameToTransform: this.supportCodeLibrary
-        .parameterTypeNameToTransform,
-      world: this.testCases[testCaseId].world,
-    })
+    const generateParametersFn = () => {
+      return this.getStepParameters({
+        pickleArguments,
+        patternMatches,
+        parameterTypeNameToTransform: this.supportCodeLibrary
+          .parameterTypeNameToTransform,
+        world: this.testCases[testCaseId].world,
+      })
+    }
     return StepRunner.run({
       defaultTimeout: this.supportCodeLibrary.defaultTimeout,
-      parameters,
+      generateParametersFn,
       stepDefinition: _.find(this.supportCodeLibrary.stepDefinitions, [
         'id',
         stepDefinitionId,
@@ -211,7 +214,7 @@ export default class Runtime {
         }
         break
       case commandTypes.ERROR:
-        throw new Error(command.message)
+        throw new Error(command.error)
       default:
         throw new Error(`Unexpected message from pickle runner: ${line}`)
     }

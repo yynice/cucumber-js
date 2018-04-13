@@ -8,32 +8,41 @@ import { format } from 'assertion-error-formatter'
 const { beginTiming, endTiming } = Time
 
 async function run({
-  colorFns,
   defaultTimeout,
-  parameters,
+  generateParametersFn,
   stepDefinition,
   world,
 }) {
-  beginTiming()
-  let error, result
+  let duration = 0
+  let error, parameters, result
 
   const timeoutInMilliseconds = stepDefinition.options.timeout || defaultTimeout
 
-  const validCodeLengths = stepDefinition.getValidCodeLengths(parameters)
-  if (_.includes(validCodeLengths, stepDefinition.code.length)) {
-    const data = await UserCodeRunner.run({
-      argsArray: parameters,
-      fn: stepDefinition.code,
-      thisArg: world,
-      timeoutInMilliseconds,
-    })
-    error = data.error
-    result = data.result
-  } else {
-    error = stepDefinition.getInvalidCodeLengthMessage(parameters)
+  try {
+    parameters = await Promise.resolve(generateParametersFn())
+  } catch (e) {
+    error = e
   }
 
-  const testStepResult = { duration: endTiming() }
+  if (!error) {
+    const validCodeLengths = stepDefinition.getValidCodeLengths(parameters)
+    if (_.includes(validCodeLengths, stepDefinition.code.length)) {
+      beginTiming()
+      const data = await UserCodeRunner.run({
+        argsArray: parameters,
+        fn: stepDefinition.code,
+        thisArg: world,
+        timeoutInMilliseconds,
+      })
+      error = data.error
+      result = data.result
+      duration = endTiming()
+    } else {
+      error = stepDefinition.getInvalidCodeLengthMessage(parameters)
+    }
+  }
+
+  const testStepResult = { duration }
 
   if (result === 'skipped') {
     testStepResult.status = Status.SKIPPED
