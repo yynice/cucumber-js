@@ -83,7 +83,7 @@ const projectSrcPath = path.join(projectPath, 'src')
 const projectLibPath = path.join(projectPath, 'lib')
 
 function getDefinitionLineAndUri() {
-  let line = 'unknown'
+  let line = 0
   let uri = 'unknown'
   const stackframes = StackTrace.getSync()
   const stackframe = _.find(stackframes, frame => {
@@ -94,8 +94,8 @@ function getDefinitionLineAndUri() {
     )
   })
   if (stackframe) {
-    line = stackframe.getLineNumber()
-    uri = stackframe.getFileName()
+    line = stackframe.getLineNumber() || 0
+    uri = stackframe.getFileName() || 'unknown'
   }
   return { line, uri }
 }

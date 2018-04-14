@@ -1,6 +1,10 @@
 import Formatter from './'
 import Status from '../status'
-import { KeywordType, getStepKeywordType } from './helpers'
+import {
+  KeywordType,
+  getStepKeywordType,
+  getUndefinedStepResultKeyword,
+} from './helpers'
 
 export default class SnippetsFormatter extends Formatter {
   constructor(options) {
@@ -17,10 +21,10 @@ export default class SnippetsFormatter extends Formatter {
         gherkinDocument,
         testCase,
       } = this.eventDataCollector.getTestCaseData(sourceLocation)
-      const {
-        pickleStep,
-        gherkinKeyword,
-      } = this.eventDataCollector.getTestStepData({ testCase, index })
+      const { gherkinKeyword } = this.eventDataCollector.getTestStepData({
+        testCase,
+        index,
+      })
       const previousKeywordType = this.getPreviousKeywordType({
         gherkinDocument,
         testCase,
@@ -31,7 +35,10 @@ export default class SnippetsFormatter extends Formatter {
         language: gherkinDocument.feature.language,
         previousKeywordType,
       })
-      const snippet = this.snippetBuilder.build({ keywordType, pickleStep })
+      const snippet = result.message.replace(
+        '{{keywordType}}',
+        getUndefinedStepResultKeyword(keywordType)
+      )
       this.log(`${snippet}\n\n`)
     }
   }

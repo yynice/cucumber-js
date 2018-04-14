@@ -9,3 +9,4 @@ export { formatLocation } from './location_helpers'
 export { formatSummary } from './summary_helpers'
 export { getUsage } from './usage_helpers'
 export { GherkinDocumentParser, PickleParser }
+export { getUndefinedStepResultKeyword } from './step_result_helpers'

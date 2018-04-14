@@ -1,5 +1,6 @@
 import Status from '../../status'
 import KeywordType from './keyword_type'
+import indentString from 'indent-string'
 
 export function getStepMessage({ keywordType, testStep }) {
   switch (testStep.result.status) {
@@ -8,14 +9,16 @@ export function getStepMessage({ keywordType, testStep }) {
     case Status.PENDING:
       return testStep.result.message
     case Status.UNDEFINED:
-      return testStep.result.message.replace(
+      const snippet = testStep.result.message.replace(
         '{{keywordType}}',
         getUndefinedStepResultKeyword(keywordType)
       )
+      const indentedSnippet = indentString(snippet, 2)
+      return `Undefined. Implement with the following snippet:\n\n${indentedSnippet}`
   }
 }
 
-function getUndefinedStepResultKeyword(keywordType) {
+export function getUndefinedStepResultKeyword(keywordType) {
   switch (keywordType) {
     case KeywordType.EVENT:
       return 'When'
