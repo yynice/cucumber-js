@@ -14,6 +14,7 @@ describe('JsonFormatter', () => {
       this.output += data
     }
     this.jsonFormatter = new JsonFormatter({
+      cwd: '/path/to/features',
       eventBroadcaster: this.eventBroadcaster,
       eventDataCollector: new EventDataCollector(this.eventBroadcaster),
       log: logFn,
@@ -39,7 +40,7 @@ describe('JsonFormatter', () => {
           'Scenario: my scenario\n' +
           'my scenario description\n' +
           'Given my step',
-        'a.feature'
+        '/path/to/features/a.feature'
       )
       events.forEach(event => {
         this.eventBroadcaster.emit(event.type, event)
@@ -51,7 +52,9 @@ describe('JsonFormatter', () => {
           })
         }
       })
-      this.testCase = { sourceLocation: { uri: 'a.feature', line: 4 } }
+      this.testCase = {
+        sourceLocation: { uri: '/path/to/features/a.feature', line: 4 },
+      }
     })
 
     describe('passed', () => {
@@ -60,7 +63,7 @@ describe('JsonFormatter', () => {
           sourceLocation: this.testCase.sourceLocation,
           steps: [
             {
-              sourceLocation: { uri: 'a.feature', line: 6 },
+              sourceLocation: { uri: '/path/to/features/a.feature', line: 6 },
             },
           ],
         })
@@ -120,14 +123,14 @@ describe('JsonFormatter', () => {
           sourceLocation: this.testCase.sourceLocation,
           steps: [
             {
-              sourceLocation: { uri: 'a.feature', line: 6 },
+              sourceLocation: { uri: '/path/to/features/a.feature', line: 6 },
             },
           ],
         })
         this.eventBroadcaster.emit('test-step-finished', {
           index: 0,
           testCase: this.testCase,
-          result: { duration: 1, exception: 'my error', status: Status.FAILED },
+          result: { duration: 1, message: 'my error', status: Status.FAILED },
         })
         this.eventBroadcaster.emit('test-case-finished', {
           sourceLocation: this.testCase.sourceLocation,
@@ -152,8 +155,8 @@ describe('JsonFormatter', () => {
           sourceLocation: this.testCase.sourceLocation,
           steps: [
             {
-              actionLocation: { uri: 'steps.js', line: 10 },
-              sourceLocation: { uri: 'a.feature', line: 6 },
+              actionLocation: { uri: '/path/to/features/steps.js', line: 10 },
+              sourceLocation: { uri: '/path/to/features/a.feature', line: 6 },
             },
           ],
         })
@@ -183,14 +186,14 @@ describe('JsonFormatter', () => {
           sourceLocation: this.testCase.sourceLocation,
           steps: [
             {
-              actionLocation: { uri: 'steps.js', line: 10 },
+              actionLocation: { uri: '/path/to/features/steps.js', line: 10 },
             },
             {
-              sourceLocation: { uri: 'a.feature', line: 6 },
-              actionLocation: { uri: 'steps.js', line: 11 },
+              sourceLocation: { uri: '/path/to/features/a.feature', line: 6 },
+              actionLocation: { uri: '/path/to/features/steps.js', line: 11 },
             },
             {
-              actionLocation: { uri: 'steps.js', line: 12 },
+              actionLocation: { uri: '/path/to/features/steps.js', line: 12 },
             },
           ],
         })
@@ -224,8 +227,8 @@ describe('JsonFormatter', () => {
           sourceLocation: this.testCase.sourceLocation,
           steps: [
             {
-              sourceLocation: { uri: 'a.feature', line: 6 },
-              actionLocation: { uri: 'steps.js', line: 11 },
+              sourceLocation: { uri: '/path/to/features/a.feature', line: 6 },
+              actionLocation: { uri: '/path/to/features/steps.js', line: 11 },
             },
           ],
         })
@@ -271,7 +274,7 @@ describe('JsonFormatter', () => {
           '      """\n' +
           '      This is a DocString\n' +
           '      """\n',
-        'a.feature'
+        '/path/to/features/a.feature'
       )
       events.forEach(event => {
         this.eventBroadcaster.emit(event.type, event)
@@ -283,13 +286,15 @@ describe('JsonFormatter', () => {
           })
         }
       })
-      this.testCase = { sourceLocation: { uri: 'a.feature', line: 2 } }
+      this.testCase = {
+        sourceLocation: { uri: '/path/to/features/a.feature', line: 2 },
+      }
       this.eventBroadcaster.emit('test-case-prepared', {
         ...this.testCase,
         steps: [
           {
-            sourceLocation: { uri: 'a.feature', line: 3 },
-            actionLocation: { uri: 'steps.js', line: 10 },
+            sourceLocation: { uri: '/path/to/features/a.feature', line: 3 },
+            actionLocation: { uri: '/path/to/features/steps.js', line: 10 },
           },
         ],
       })
@@ -316,7 +321,7 @@ describe('JsonFormatter', () => {
     })
   })
 
-  describe('one scenario with one step with a data table string', () => {
+  describe('one scenario with one step with a data table', () => {
     beforeEach(function() {
       const events = Gherkin.generateEvents(
         'Feature: my feature\n' +
@@ -325,7 +330,7 @@ describe('JsonFormatter', () => {
           '      |aaa|b|c|\n' +
           '      |d|e|ff|\n' +
           '      |gg|h|iii|\n',
-        'a.feature'
+        '/path/to/features/a.feature'
       )
       events.forEach(event => {
         this.eventBroadcaster.emit(event.type, event)
@@ -337,13 +342,15 @@ describe('JsonFormatter', () => {
           })
         }
       })
-      this.testCase = { sourceLocation: { uri: 'a.feature', line: 2 } }
+      this.testCase = {
+        sourceLocation: { uri: '/path/to/features/a.feature', line: 2 },
+      }
       this.eventBroadcaster.emit('test-case-prepared', {
         ...this.testCase,
         steps: [
           {
-            sourceLocation: { uri: 'a.feature', line: 3 },
-            actionLocation: { uri: 'steps.js', line: 10 },
+            sourceLocation: { uri: '/path/to/features/a.feature', line: 3 },
+            actionLocation: { uri: '/path/to/features/steps.js', line: 10 },
           },
         ],
       })

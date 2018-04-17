@@ -1,6 +1,6 @@
 import { beforeEach, describe, it } from 'mocha'
 import { expect } from 'chai'
-import { createMock } from '../test_helpers'
+import { createMock } from '../../../test/helpers'
 import getColorFns from '../get_color_fns'
 import Status from '../../status'
 import { formatIssue } from './issue_helpers'
@@ -19,23 +19,24 @@ describe('IssueHelpers', () => {
     const pickle = new Gherkin.Compiler().compile(gherkinDocument)[0]
     this.testCase = {
       sourceLocation: {
-        uri: 'a.feature',
+        uri: '/path/to/features/a.feature',
         line: 2,
       },
       steps: [
         {
-          actionLocation: { line: 2, uri: 'steps.js' },
-          sourceLocation: { line: 3, uri: 'a.feature' },
+          actionLocation: { line: 2, uri: '/path/to/features/steps.js' },
+          sourceLocation: { line: 3, uri: '/path/to/features/a.feature' },
         },
         {},
         {
-          actionLocation: { line: 4, uri: 'steps.js' },
-          sourceLocation: { line: 5, uri: 'a.feature' },
+          actionLocation: { line: 4, uri: '/path/to/features/steps.js' },
+          sourceLocation: { line: 5, uri: '/path/to/features/a.feature' },
         },
       ],
     }
     this.options = {
       colorFns: getColorFns(false),
+      cwd: '/path/to/features',
       gherkinDocument,
       number: 1,
       pickle,
@@ -51,10 +52,10 @@ describe('IssueHelpers', () => {
       beforeEach(function() {
         this.testCase.steps[0].result = this.passedStepResult
         this.testCase.steps[1] = {
-          actionLocation: { line: 3, uri: 'steps.js' },
-          sourceLocation: { line: 4, uri: 'a.feature' },
+          actionLocation: { line: 3, uri: '/path/to/features/steps.js' },
+          sourceLocation: { line: 4, uri: '/path/to/features/a.feature' },
           result: {
-            exception: 'error',
+            message: 'error',
             status: Status.FAILED,
           },
         }
@@ -77,10 +78,10 @@ describe('IssueHelpers', () => {
       beforeEach(function() {
         this.testCase.steps[0].result = this.passedStepResult
         this.testCase.steps[1] = {
-          actionLocation: { line: 3, uri: 'steps.js' },
-          sourceLocation: { line: 4, uri: 'a.feature' },
+          actionLocation: { line: 3, uri: '/path/to/features/steps.js' },
+          sourceLocation: { line: 4, uri: '/path/to/features/a.feature' },
           result: {
-            exception:
+            message:
               'Multiple step definitions match:\n' +
               '  pattern1        - steps.js:5\n' +
               '  longer pattern2 - steps.js:6',
@@ -109,7 +110,7 @@ describe('IssueHelpers', () => {
         this.testCase.steps[0].result = this.passedStepResult
         this.testCase.steps[1] = {
           sourceLocation: { line: 4, uri: 'a.feature' },
-          result: { status: Status.UNDEFINED },
+          result: { message: 'snippet\n', status: Status.UNDEFINED },
         }
         this.testCase.steps[2].result = this.skippedStepResult
         this.formattedIssue = formatIssue(this.options)
@@ -133,9 +134,9 @@ describe('IssueHelpers', () => {
       beforeEach(function() {
         this.testCase.steps[0].result = this.passedStepResult
         this.testCase.steps[1] = {
-          actionLocation: { line: 3, uri: 'steps.js' },
-          sourceLocation: { line: 4, uri: 'a.feature' },
-          result: { status: Status.PENDING },
+          actionLocation: { line: 3, uri: '/path/to/features/steps.js' },
+          sourceLocation: { line: 4, uri: '/path/to/features/a.feature' },
+          result: { message: 'Pending', status: Status.PENDING },
         }
         this.testCase.steps[2].result = this.skippedStepResult
         this.formattedIssue = formatIssue(this.options)
@@ -169,9 +170,9 @@ describe('IssueHelpers', () => {
         this.options.pickle = pickle
         this.testCase.steps[0].result = this.passedStepResult
         this.testCase.steps[1] = {
-          actionLocation: { line: 3, uri: 'steps.js' },
-          sourceLocation: { line: 4, uri: 'a.feature' },
-          result: { status: Status.PENDING },
+          actionLocation: { line: 3, uri: '/path/to/features/steps.js' },
+          sourceLocation: { line: 4, uri: '/path/to/features/a.feature' },
+          result: { message: 'Pending', status: Status.PENDING },
         }
         this.testCase.steps[2].result = this.skippedStepResult
         this.formattedIssue = formatIssue(this.options)
@@ -211,9 +212,9 @@ describe('IssueHelpers', () => {
         this.options.pickle = pickle
         this.testCase.steps[0].result = this.passedStepResult
         this.testCase.steps[1] = {
-          actionLocation: { line: 3, uri: 'steps.js' },
-          sourceLocation: { line: 4, uri: 'a.feature' },
-          result: { status: Status.PENDING },
+          actionLocation: { line: 3, uri: '/path/to/features/steps.js' },
+          sourceLocation: { line: 4, uri: '/path/to/features/a.feature' },
+          result: { message: 'Pending', status: Status.PENDING },
         }
         this.testCase.steps[2].result = this.skippedStepResult
         this.formattedIssue = formatIssue(this.options)
@@ -260,10 +261,10 @@ describe('IssueHelpers', () => {
           },
         ]
         this.testCase.steps[1] = {
-          actionLocation: { line: 3, uri: 'steps.js' },
-          sourceLocation: { line: 4, uri: 'a.feature' },
+          actionLocation: { line: 3, uri: '/path/to/features/steps.js' },
+          sourceLocation: { line: 4, uri: '/path/to/features/a.feature' },
           result: {
-            exception: 'error',
+            message: 'error',
             status: Status.FAILED,
           },
         }

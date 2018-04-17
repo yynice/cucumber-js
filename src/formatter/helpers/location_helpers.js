@@ -1,5 +1,9 @@
 import path from 'path'
 
 export function formatLocation(obj, cwd) {
-  return `${path.relative(cwd, obj.uri)}:${obj.line}`
+  let relativeUri = obj.uri
+  if (cwd) {
+    relativeUri = path.relative(cwd, obj.uri)
+  }
+  return `${relativeUri}:${obj.line}`
 }

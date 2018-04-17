@@ -86,26 +86,32 @@ export default class Runtime {
   }
 
   runBeforeTestCaseHook({ testCaseId, testCaseHookDefinitionId }) {
+    const { world, pickle, testCase } = this.testCases[testCaseId]
     return StepRunner.run({
       defaultTimeout: this.supportCodeLibrary.defaultTimeout,
-      generateParametersFn: () => [null], // todo get hook parameter
+      generateParametersFn: () => [
+        { sourceLocation: testCase.sourceLocation, pickle },
+      ],
       stepDefinition: _.find(
         this.supportCodeLibrary.beforeTestCaseHookDefinitions,
         ['id', testCaseHookDefinitionId]
       ),
-      world: this.testCases[testCaseId].world,
+      world,
     })
   }
 
-  runAfterTestCaseHook({ testCaseId, testCaseHookDefinitionId }) {
+  runAfterTestCaseHook({ testCaseId, testCaseHookDefinitionId, result }) {
+    const { world, pickle, testCase } = this.testCases[testCaseId]
     return StepRunner.run({
       defaultTimeout: this.supportCodeLibrary.defaultTimeout,
-      generateParametersFn: () => [null], // todo get hook parameter
+      generateParametersFn: () => [
+        { sourceLocation: testCase.sourceLocation, pickle, result },
+      ],
       stepDefinition: _.find(
         this.supportCodeLibrary.afterTestCaseHookDefinitions,
         ['id', testCaseHookDefinitionId]
       ),
-      world: this.testCases[testCaseId].world,
+      world,
     })
   }
 
@@ -160,6 +166,8 @@ export default class Runtime {
         })
         this.testCases[command.testCaseId] = {
           currentStepIndex: 0,
+          testCase: command.testCase,
+          pickle: command.pickle,
           world: new this.supportCodeLibrary.World({
             attach: ::attachmentManager.create,
             parameters: this.worldParameters,
@@ -172,7 +180,7 @@ export default class Runtime {
         this.testCases[command.testCaseId].currentStepIndex += 1
         this.sendActionComplete({
           responseTo: command.id,
-          hookOrStepResult: beforeHookResult,
+          result: beforeHookResult,
         })
         break
       case commandTypes.RUN_AFTER_TEST_CASE_HOOK:
@@ -180,7 +188,7 @@ export default class Runtime {
         this.testCases[command.testCaseId].currentStepIndex += 1
         this.sendActionComplete({
           responseTo: command.id,
-          hookOrStepResult: afterHookResult,
+          result: afterHookResult,
         })
         break
       case commandTypes.RUN_TEST_STEP:
@@ -188,7 +196,7 @@ export default class Runtime {
         this.testCases[command.testCaseId].currentStepIndex += 1
         this.sendActionComplete({
           responseTo: command.id,
-          hookOrStepResult: stepResult,
+          result: stepResult,
         })
         break
       case commandTypes.GENERATE_SNIPPET:

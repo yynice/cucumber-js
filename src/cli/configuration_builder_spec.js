@@ -28,8 +28,10 @@ describe('Configuration', () => {
       expect(this.result).to.eql({
         featuresConfig: {
           absolutePaths: [],
-          defaultLanguage: '',
-          order: 'defined',
+          language: 'en',
+          order: {
+            type: 'defined',
+          },
           filters: {
             lines: {},
             names: [],

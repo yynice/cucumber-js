@@ -1,6 +1,6 @@
 import { beforeEach, describe, it } from 'mocha'
 import { expect } from 'chai'
-import { createMock } from './test_helpers'
+import { createMock } from '../../test/helpers'
 import getColorFns from './get_color_fns'
 import Status from '../status'
 import SummaryFormatter from './summary_formatter'
@@ -18,6 +18,7 @@ describe('SummaryFormatter', () => {
     this.eventBroadcaster = new EventEmitter()
     this.summaryFormatter = new SummaryFormatter({
       colorFns: getColorFns(false),
+      cwd: 'path/to/project',
       eventBroadcaster: this.eventBroadcaster,
       eventDataCollector: new EventDataCollector(this.eventBroadcaster),
       log: logFn,
@@ -29,7 +30,7 @@ describe('SummaryFormatter', () => {
     beforeEach(function() {
       const events = Gherkin.generateEvents(
         'Feature: a\nScenario: b\nGiven a step',
-        'a.feature'
+        'path/to/project/a.feature'
       )
       events.forEach(event => {
         this.eventBroadcaster.emit(event.type, event)
@@ -41,7 +42,9 @@ describe('SummaryFormatter', () => {
           })
         }
       })
-      this.testCase = { sourceLocation: { uri: 'a.feature', line: 2 } }
+      this.testCase = {
+        sourceLocation: { uri: 'path/to/project/a.feature', line: 2 },
+      }
     })
 
     describe('with a failing scenario', () => {
@@ -50,15 +53,15 @@ describe('SummaryFormatter', () => {
           sourceLocation: this.testCase.sourceLocation,
           steps: [
             {
-              sourceLocation: { uri: 'a.feature', line: 3 },
-              actionLocation: { uri: 'steps.js', line: 4 },
+              sourceLocation: { uri: 'path/to/project/a.feature', line: 3 },
+              actionLocation: { uri: 'path/to/project/steps.js', line: 4 },
             },
           ],
         })
         this.eventBroadcaster.emit('test-step-finished', {
           index: 0,
           testCase: this.testCase,
-          result: { exception: 'error', status: Status.FAILED },
+          result: { message: 'error', status: Status.FAILED },
         })
         this.eventBroadcaster.emit('test-case-finished', {
           sourceLocation: this.testCase.sourceLocation,
@@ -90,7 +93,7 @@ describe('SummaryFormatter', () => {
           sourceLocation: this.testCase.sourceLocation,
           steps: [
             {
-              sourceLocation: { uri: 'a.feature', line: 3 },
+              sourceLocation: { uri: 'path/to/project/a.feature', line: 3 },
             },
           ],
         })
@@ -98,7 +101,7 @@ describe('SummaryFormatter', () => {
           index: 0,
           testCase: this.testCase,
           result: {
-            exception:
+            message:
               'Multiple step definitions match:\n' +
               '  pattern1        - steps.js:3\n' +
               '  longer pattern2 - steps.js:4',
@@ -137,18 +140,18 @@ describe('SummaryFormatter', () => {
           sourceLocation: this.testCase.sourceLocation,
           steps: [
             {
-              sourceLocation: { uri: 'a.feature', line: 3 },
+              sourceLocation: { uri: 'path/to/project/a.feature', line: 3 },
             },
           ],
         })
         this.eventBroadcaster.emit('test-step-finished', {
           index: 0,
           testCase: this.testCase,
-          result: { status: Status.UNDEFINED },
+          result: { message: 'snippet\n', status: Status.UNDEFINED },
         })
         this.eventBroadcaster.emit('test-case-finished', {
           sourceLocation: this.testCase.sourceLocation,
-          result: { status: Status.UNDEFINED },
+          result: { message: 'snippet\n', status: Status.UNDEFINED },
         })
         this.eventBroadcaster.emit('test-run-finished', {
           result: { duration: 0 },
@@ -179,19 +182,19 @@ describe('SummaryFormatter', () => {
           sourceLocation: this.testCase.sourceLocation,
           steps: [
             {
-              sourceLocation: { uri: 'a.feature', line: 3 },
-              actionLocation: { uri: 'steps.js', line: 4 },
+              sourceLocation: { uri: 'path/to/project/a.feature', line: 3 },
+              actionLocation: { uri: 'path/to/project/steps.js', line: 4 },
             },
           ],
         })
         this.eventBroadcaster.emit('test-step-finished', {
           index: 0,
           testCase: this.testCase,
-          result: { status: Status.PENDING },
+          result: { message: 'Pending', status: Status.PENDING },
         })
         this.eventBroadcaster.emit('test-case-finished', {
           sourceLocation: this.testCase.sourceLocation,
-          result: { status: Status.PENDING },
+          result: { message: 'Pending', status: Status.PENDING },
         })
         this.eventBroadcaster.emit('test-run-finished', {
           result: { duration: 0 },

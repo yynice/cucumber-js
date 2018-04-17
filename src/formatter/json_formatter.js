@@ -2,6 +2,7 @@ import _ from 'lodash'
 import Formatter from './'
 import { formatLocation, GherkinDocumentParser, PickleParser } from './helpers'
 import { buildStepArgumentIterator } from '../step_arguments'
+import path from 'path'
 
 const {
   getStepLineToKeywordMap,
@@ -96,7 +97,7 @@ export default class JsonFormatter extends Formatter {
       line: feature.location.line,
       id: this.convertNameToId(feature),
       tags: this.getTags(feature),
-      uri,
+      uri: path.relative(this.cwd, uri),
     }
   }
 
@@ -140,10 +141,10 @@ export default class JsonFormatter extends Formatter {
       }
     }
     if (testStep.result) {
-      const { result: { message, status } } = testStep
-      data.result = { message, status }
-      if (testStep.result.duration) {
-        data.result.duration = testStep.result.duration * 1000000
+      const { result: { message, status, duration } } = testStep
+      data.result = { error_message: message, status }
+      if (duration) {
+        data.result.duration = duration * 1000000
       }
     }
     if (_.size(testStep.attachments) > 0) {

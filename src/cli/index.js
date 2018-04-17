@@ -10,8 +10,8 @@ import path from 'path'
 import Promise from 'bluebird'
 import Runtime from '../runtime/shared'
 import supportCodeLibraryBuilder from '../support_code_library_builder'
-import JavascriptSnippetSyntax from '../formatter/step_definition_snippet_builder/javascript_snippet_syntax'
-import StepDefinitionSnippetBuilder from '../formatter/step_definition_snippet_builder'
+import JavascriptSnippetSyntax from './step_definition_snippet_builder/javascript_snippet_syntax'
+import StepDefinitionSnippetBuilder from './step_definition_snippet_builder'
 
 export default class Cli {
   static getStepDefinitionSnippetBuilder({

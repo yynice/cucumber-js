@@ -1,6 +1,6 @@
 import { beforeEach, describe, it } from 'mocha'
 import { expect } from 'chai'
-import { createMock } from './test_helpers'
+import { createMock } from '../../test/helpers'
 import sinon from 'sinon'
 import getColorFns from './get_color_fns'
 import ProgressBarFormatter from './progress_bar_formatter'
@@ -283,11 +283,11 @@ describe('ProgressBarFormatter', () => {
         this.eventBroadcaster.emit('test-step-finished', {
           index: 0,
           testCase: this.testCase,
-          result: { status: Status.UNDEFINED },
+          result: { message: 'snippet', status: Status.UNDEFINED },
         })
         this.eventBroadcaster.emit('test-case-finished', {
           sourceLocation: this.testCase.sourceLocation,
-          result: { status: Status.UNDEFINED },
+          result: { message: 'snippet', status: Status.UNDEFINED },
         })
       })
 

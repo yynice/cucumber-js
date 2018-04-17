@@ -18,21 +18,22 @@ describe('UsageJsonFormatter', () => {
           {
             line: 1,
             pattern: '/abc/',
-            uri: 'steps.js',
+            uri: '/path/to/project/steps.js',
           },
           {
             line: 2,
             pattern: '/def/',
-            uri: 'steps.js',
+            uri: '/path/to/project/steps.js',
           },
           {
             line: 3,
             pattern: '/ghi/',
-            uri: 'steps.js',
+            uri: '/path/to/project/steps.js',
           },
         ],
       }
       this.usageJsonFormatter = new UsageJsonFormatter({
+        cwd: '/path/to/project/',
         eventBroadcaster,
         eventDataCollector: new EventDataCollector(eventBroadcaster),
         log: logFn,
@@ -40,7 +41,7 @@ describe('UsageJsonFormatter', () => {
       })
       const events = Gherkin.generateEvents(
         'Feature: a\nScenario: b\nGiven abc\nWhen def',
-        'a.feature'
+        '/path/to/project/a.feature'
       )
       events.forEach(event => {
         eventBroadcaster.emit(event.type, event)
@@ -52,17 +53,19 @@ describe('UsageJsonFormatter', () => {
           })
         }
       })
-      const testCase = { sourceLocation: { uri: 'a.feature', line: 2 } }
+      const testCase = {
+        sourceLocation: { uri: '/path/to/project/a.feature', line: 2 },
+      }
       eventBroadcaster.emit('test-case-prepared', {
         ...testCase,
         steps: [
           {
-            sourceLocation: { uri: 'a.feature', line: 3 },
-            actionLocation: { uri: 'steps.js', line: 1 },
+            sourceLocation: { uri: '/path/to/project/a.feature', line: 3 },
+            actionLocation: { uri: '/path/to/project/steps.js', line: 1 },
           },
           {
-            sourceLocation: { uri: 'a.feature', line: 4 },
-            actionLocation: { uri: 'steps.js', line: 2 },
+            sourceLocation: { uri: '/path/to/project/a.feature', line: 4 },
+            actionLocation: { uri: '/path/to/project/steps.js', line: 2 },
           },
         ],
       })

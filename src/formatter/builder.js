@@ -1,13 +1,11 @@
 import EventProtocolFormatter from './event_protocol_formatter'
 import getColorFns from './get_color_fns'
-import JavascriptSnippetSyntax from './step_definition_snippet_builder/javascript_snippet_syntax'
 import JsonFormatter from './json_formatter'
 import path from 'path'
 import ProgressBarFormatter from './progress_bar_formatter'
 import ProgressFormatter from './progress_formatter'
 import RerunFormatter from './rerun_formatter'
 import SnippetsFormatter from './snippets_formatter'
-import StepDefinitionSnippetBuilder from './step_definition_snippet_builder'
 import SummaryFormatter from './summary_formatter'
 import UsageFormatter from './usage_formatter'
 import UsageJsonFormatter from './usage_json_formatter'
@@ -17,7 +15,6 @@ export default class FormatterBuilder {
     const Formatter = FormatterBuilder.getConstructorByType(type, options)
     const extendedOptions = {
       colorFns: getColorFns(options.colorsEnabled),
-      snippetBuilder: FormatterBuilder.getStepDefinitionSnippetBuilder(options),
       ...options,
     }
     return new Formatter(extendedOptions)
@@ -46,26 +43,6 @@ export default class FormatterBuilder {
       default:
         return FormatterBuilder.loadCustomFormatter(type, options)
     }
-  }
-
-  static getStepDefinitionSnippetBuilder({
-    cwd,
-    snippetInterface,
-    snippetSyntax,
-    supportCodeLibrary,
-  }) {
-    if (!snippetInterface) {
-      snippetInterface = 'synchronous'
-    }
-    let Syntax = JavascriptSnippetSyntax
-    if (snippetSyntax) {
-      const fullSyntaxPath = path.resolve(cwd, snippetSyntax)
-      Syntax = require(fullSyntaxPath)
-    }
-    return new StepDefinitionSnippetBuilder({
-      snippetSyntax: new Syntax(snippetInterface),
-      parameterTypeRegistry: supportCodeLibrary.parameterTypeRegistry,
-    })
   }
 
   static loadCustomFormatter(customFormatterPath, { cwd }) {

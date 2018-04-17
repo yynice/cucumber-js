@@ -3,7 +3,6 @@
 import _ from 'lodash'
 import { Then } from '../../'
 import { expect } from 'chai'
-import path from 'path'
 
 Then('it outputs the usage data:', function(table) {
   const usageData = JSON.parse(this.lastRun.output)
@@ -15,6 +14,6 @@ Then('it outputs the usage data:', function(table) {
     expect(rowUsage).to.be.an('object')
     expect(rowUsage.line).to.eql(parseInt(row.LINE))
     expect(rowUsage.matches).to.have.lengthOf(row['NUMBER OF MATCHES'])
-    expect(rowUsage.uri).to.eql(path.join(this.tmpDir, row.URI))
+    expect(rowUsage.uri).to.eql(row.URI)
   })
 })

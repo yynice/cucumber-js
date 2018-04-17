@@ -17,6 +17,7 @@ describe('UsageFormatter', () => {
         stepDefinitions: [],
       }
       this.usageFormatter = new UsageFormatter({
+        cwd: '/path/to/project',
         eventBroadcaster: this.eventBroadcaster,
         eventDataCollector: new EventDataCollector(this.eventBroadcaster),
         log: logFn,
@@ -38,8 +39,11 @@ describe('UsageFormatter', () => {
       beforeEach(function() {
         this.stepDefinition = {
           line: 1,
-          pattern: '/^abc?$/',
-          uri: 'steps.js',
+          pattern: {
+            source: '^abc?$',
+            type: 'regular_expression',
+          },
+          uri: '/path/to/project/steps.js',
         }
         this.supportCodeLibrary.stepDefinitions = [this.stepDefinition]
       })
@@ -54,7 +58,7 @@ describe('UsageFormatter', () => {
             '┌────────────────┬──────────┬────────────┐\n' +
               '│ Pattern / Text │ Duration │ Location   │\n' +
               '├────────────────┼──────────┼────────────┤\n' +
-              '│ /^abc?$/       │ UNUSED   │ steps.js:1 │\n' +
+              '│ ^abc?$         │ UNUSED   │ steps.js:1 │\n' +
               '└────────────────┴──────────┴────────────┘\n'
           )
         })
@@ -64,7 +68,7 @@ describe('UsageFormatter', () => {
         beforeEach(function() {
           const events = Gherkin.generateEvents(
             'Feature: a\nScenario: b\nWhen abc\nThen ab',
-            'a.feature'
+            '/path/to/project/a.feature'
           )
           events.forEach(event => {
             this.eventBroadcaster.emit(event.type, event)
@@ -76,17 +80,19 @@ describe('UsageFormatter', () => {
               })
             }
           })
-          this.testCase = { sourceLocation: { uri: 'a.feature', line: 2 } }
+          this.testCase = {
+            sourceLocation: { uri: '/path/to/project/a.feature', line: 2 },
+          }
           this.eventBroadcaster.emit('test-case-prepared', {
             ...this.testCase,
             steps: [
               {
-                sourceLocation: { uri: 'a.feature', line: 3 },
-                actionLocation: { uri: 'steps.js', line: 1 },
+                sourceLocation: { uri: '/path/to/project/a.feature', line: 3 },
+                actionLocation: { uri: '/path/to/project/steps.js', line: 1 },
               },
               {
-                sourceLocation: { uri: 'a.feature', line: 4 },
-                actionLocation: { uri: 'steps.js', line: 1 },
+                sourceLocation: { uri: '/path/to/project/a.feature', line: 4 },
+                actionLocation: { uri: '/path/to/project/steps.js', line: 1 },
               },
             ],
           })
@@ -112,7 +118,7 @@ describe('UsageFormatter', () => {
               '┌────────────────┬──────────┬─────────────┐\n' +
                 '│ Pattern / Text │ Duration │ Location    │\n' +
                 '├────────────────┼──────────┼─────────────┤\n' +
-                '│ /^abc?$/       │ -        │ steps.js:1  │\n' +
+                '│ ^abc?$         │ -        │ steps.js:1  │\n' +
                 '│   ab           │ -        │ a.feature:4 │\n' +
                 '│   abc          │ -        │ a.feature:3 │\n' +
                 '└────────────────┴──────────┴─────────────┘\n'
@@ -140,7 +146,7 @@ describe('UsageFormatter', () => {
               '┌────────────────┬──────────┬─────────────┐\n' +
                 '│ Pattern / Text │ Duration │ Location    │\n' +
                 '├────────────────┼──────────┼─────────────┤\n' +
-                '│ /^abc?$/       │ 0.5ms    │ steps.js:1  │\n' +
+                '│ ^abc?$         │ 0.5ms    │ steps.js:1  │\n' +
                 '│   abc          │ 1ms      │ a.feature:3 │\n' +
                 '│   ab           │ 0ms      │ a.feature:4 │\n' +
                 '└────────────────┴──────────┴─────────────┘\n'
@@ -155,23 +161,32 @@ describe('UsageFormatter', () => {
         this.supportCodeLibrary.stepDefinitions = [
           {
             line: 1,
-            pattern: '/abc/',
-            uri: 'steps.js',
+            pattern: {
+              source: 'abc',
+              type: 'regular_expression',
+            },
+            uri: '/path/to/project/steps.js',
           },
           {
             line: 2,
-            pattern: '/def/',
-            uri: 'steps.js',
+            pattern: {
+              source: 'def',
+              type: 'regular_expression',
+            },
+            uri: '/path/to/project/steps.js',
           },
           {
             line: 3,
-            pattern: '/ghi/',
-            uri: 'steps.js',
+            pattern: {
+              source: 'ghi',
+              type: 'regular_expression',
+            },
+            uri: '/path/to/project/steps.js',
           },
         ]
         const events = Gherkin.generateEvents(
           'Feature: a\nScenario: b\nGiven abc\nWhen def',
-          'a.feature'
+          '/path/to/project/a.feature'
         )
         events.forEach(event => {
           this.eventBroadcaster.emit(event.type, event)
@@ -183,17 +198,19 @@ describe('UsageFormatter', () => {
             })
           }
         })
-        const testCase = { sourceLocation: { uri: 'a.feature', line: 2 } }
+        const testCase = {
+          sourceLocation: { uri: '/path/to/project/a.feature', line: 2 },
+        }
         this.eventBroadcaster.emit('test-case-prepared', {
           ...testCase,
           steps: [
             {
-              sourceLocation: { uri: 'a.feature', line: 3 },
-              actionLocation: { uri: 'steps.js', line: 1 },
+              sourceLocation: { uri: '/path/to/project/a.feature', line: 3 },
+              actionLocation: { uri: '/path/to/project/steps.js', line: 1 },
             },
             {
-              sourceLocation: { uri: 'a.feature', line: 4 },
-              actionLocation: { uri: 'steps.js', line: 2 },
+              sourceLocation: { uri: '/path/to/project/a.feature', line: 4 },
+              actionLocation: { uri: '/path/to/project/steps.js', line: 2 },
             },
           ],
         })
@@ -215,13 +232,13 @@ describe('UsageFormatter', () => {
           '┌────────────────┬──────────┬─────────────┐\n' +
             '│ Pattern / Text │ Duration │ Location    │\n' +
             '├────────────────┼──────────┼─────────────┤\n' +
-            '│ /def/          │ 2ms      │ steps.js:2  │\n' +
+            '│ def            │ 2ms      │ steps.js:2  │\n' +
             '│   def          │ 2ms      │ a.feature:4 │\n' +
             '├────────────────┼──────────┼─────────────┤\n' +
-            '│ /abc/          │ 1ms      │ steps.js:1  │\n' +
+            '│ abc            │ 1ms      │ steps.js:1  │\n' +
             '│   abc          │ 1ms      │ a.feature:3 │\n' +
             '├────────────────┼──────────┼─────────────┤\n' +
-            '│ /ghi/          │ UNUSED   │ steps.js:3  │\n' +
+            '│ ghi            │ UNUSED   │ steps.js:3  │\n' +
             '└────────────────┴──────────┴─────────────┘\n'
         )
       })

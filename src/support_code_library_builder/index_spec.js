@@ -1,7 +1,6 @@
 import { beforeEach, describe, it } from 'mocha'
 import { expect } from 'chai'
 import sinon from 'sinon'
-import { ParameterTypeRegistry } from 'cucumber-expressions'
 import supportCodeLibraryBuilder from './'
 
 describe('supportCodeLibraryBuilder', () => {
@@ -19,9 +18,6 @@ describe('supportCodeLibraryBuilder', () => {
       expect(this.options.beforeTestCaseHookDefinitions).to.eql([])
       expect(this.options.defaultTimeout).to.eql(5000)
       expect(this.options.stepDefinitions).to.eql([])
-      expect(this.options.parameterTypeRegistry).to.be.instanceOf(
-        ParameterTypeRegistry
-      )
       const worldInstance = new this.options.World({
         attach: this.attachFn,
         parameters: { some: 'data' },
