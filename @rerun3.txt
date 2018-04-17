@@ -1,3 +1,0 @@
-features/custom_formatter.feature:11:61
-features/custom_stack_trace.feature:3
-features/data_tables.feature:3:28:56:81
