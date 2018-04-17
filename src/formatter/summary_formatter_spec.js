@@ -190,11 +190,11 @@ describe('SummaryFormatter', () => {
         this.eventBroadcaster.emit('test-step-finished', {
           index: 0,
           testCase: this.testCase,
-          result: { message: 'Pending', status: Status.PENDING },
+          result: { status: Status.PENDING },
         })
         this.eventBroadcaster.emit('test-case-finished', {
           sourceLocation: this.testCase.sourceLocation,
-          result: { message: 'Pending', status: Status.PENDING },
+          result: { status: Status.PENDING },
         })
         this.eventBroadcaster.emit('test-run-finished', {
           result: { duration: 0 },

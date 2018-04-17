@@ -136,7 +136,7 @@ describe('IssueHelpers', () => {
         this.testCase.steps[1] = {
           actionLocation: { line: 3, uri: '/path/to/features/steps.js' },
           sourceLocation: { line: 4, uri: '/path/to/features/a.feature' },
-          result: { message: 'Pending', status: Status.PENDING },
+          result: { status: Status.PENDING },
         }
         this.testCase.steps[2].result = this.skippedStepResult
         this.formattedIssue = formatIssue(this.options)
@@ -172,7 +172,7 @@ describe('IssueHelpers', () => {
         this.testCase.steps[1] = {
           actionLocation: { line: 3, uri: '/path/to/features/steps.js' },
           sourceLocation: { line: 4, uri: '/path/to/features/a.feature' },
-          result: { message: 'Pending', status: Status.PENDING },
+          result: { status: Status.PENDING },
         }
         this.testCase.steps[2].result = this.skippedStepResult
         this.formattedIssue = formatIssue(this.options)
@@ -214,7 +214,7 @@ describe('IssueHelpers', () => {
         this.testCase.steps[1] = {
           actionLocation: { line: 3, uri: '/path/to/features/steps.js' },
           sourceLocation: { line: 4, uri: '/path/to/features/a.feature' },
-          result: { message: 'Pending', status: Status.PENDING },
+          result: { status: Status.PENDING },
         }
         this.testCase.steps[2].result = this.skippedStepResult
         this.formattedIssue = formatIssue(this.options)
