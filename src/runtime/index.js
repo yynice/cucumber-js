@@ -11,8 +11,7 @@ import AttachmentManager from './attachment_manager'
 import { buildStepArgumentIterator } from '../step_arguments'
 import DataTable from '../models/data_table'
 import StepRunner from './step_runner'
-import path from 'path'
-import * as pickleRunner from '../pickle_runner'
+import { getBinaryLocalPath as getPickleRunnerBinaryPath } from '../pickle_runner'
 
 export default class Runtime {
   // featuresConfig - {absolutePaths, defaultLanguage, orderSeed, filters}
@@ -212,17 +211,6 @@ export default class Runtime {
           this.result = command.event.result
           this.pickleRunner.stdin.end()
         }
-        if (
-          command.event.type === 'attachment' &&
-          command.event.media.type === 'text/x.cucumber.stacktrace+plain'
-        ) {
-          throw new Error(
-            `Parse error in '${path.relative(
-              this.cwd,
-              command.event.source.uri
-            )}': ${command.event.data}`
-          )
-        }
         break
       case commandTypes.ERROR:
         throw new Error(command.error)
@@ -245,13 +233,9 @@ export default class Runtime {
       if (this.filterStacktraces) {
         this.stackTraceFilter.filter()
       }
-      this.pickleRunner = childProcess.spawn(
-        pickleRunner.getBinaryLocalPath(),
-        [],
-        {
-          stdio: ['pipe', 'pipe', process.stderr],
-        }
-      )
+      this.pickleRunner = childProcess.spawn(getPickleRunnerBinaryPath(), [], {
+        stdio: ['pipe', 'pipe', process.stderr],
+      })
       this.pickleRunner.on('exit', () => {
         if (!this.result) {
           reject(new Error('Pickle runner exited unexpectedly'))

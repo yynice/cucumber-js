@@ -1,7 +1,7 @@
 import path from 'path'
 import os from 'os'
 
-export const version = 'v0.0.1'
+export const version = 'v0.0.2'
 
 function throwUnsupportedErrorMessage() {
   throw new Error(
