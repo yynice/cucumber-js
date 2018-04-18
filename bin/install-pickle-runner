@@ -1,3 +1,12 @@
 #!/usr/bin/env node
+const fs = require('fs')
+const path = require('path')
 
-require('../lib/pickle_runner/install.js').default()
+const libPath = path.join(__dirname, '..', 'lib')
+fs.access(libPath, function(err) {
+  // Skip on local install when lib does not exist yet
+  if (err) {
+    return
+  }
+  require('../lib/pickle_runner/install.js').default()
+})

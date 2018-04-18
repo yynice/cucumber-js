@@ -1,17 +1,18 @@
 import _ from 'lodash'
-import { formatLocation } from '../../formatter/helpers'
+import { formatLocation } from '../formatter/helpers'
 import Promise from 'bluebird'
-import StackTraceFilter from '../stack_trace_filter'
-import UserCodeRunner from '../../user_code_runner'
+import StackTraceFilter from './stack_trace_filter'
+import UserCodeRunner from '../user_code_runner'
 import VError from 'verror'
 import childProcess from 'child_process'
 import readline from 'readline'
 import commandTypes from './command_types'
-import AttachmentManager from '../attachment_manager'
-import { buildStepArgumentIterator } from '../../step_arguments'
-import DataTable from '../../models/data_table'
-import StepRunner from '../step_runner'
+import AttachmentManager from './attachment_manager'
+import { buildStepArgumentIterator } from '../step_arguments'
+import DataTable from '../models/data_table'
+import StepRunner from './step_runner'
 import path from 'path'
+import * as pickleRunner from '../pickle_runner'
 
 export default class Runtime {
   // featuresConfig - {absolutePaths, defaultLanguage, orderSeed, filters}
@@ -244,9 +245,13 @@ export default class Runtime {
       if (this.filterStacktraces) {
         this.stackTraceFilter.filter()
       }
-      this.pickleRunner = childProcess.spawn('cucumber-pickle-runner', [], {
-        stdio: ['pipe', 'pipe', process.stderr],
-      })
+      this.pickleRunner = childProcess.spawn(
+        pickleRunner.getBinaryLocalPath(),
+        [],
+        {
+          stdio: ['pipe', 'pipe', process.stderr],
+        }
+      )
       this.pickleRunner.on('exit', () => {
         if (!this.result) {
           reject(new Error('Pickle runner exited unexpectedly'))
