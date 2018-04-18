@@ -10,6 +10,7 @@ mv .nyc_output .nyc_output_unit
 # Get coverage from feature tests
 rm -rf .nyc_output_feature
 BABEL_ENV=test_coverage ./node_modules/.bin/babel src -d lib --ignore '**/*_spec.js'
+yarn run install-pickle-runner
 ./node_modules/.bin/nyc --silent node ./bin/cucumber-js
 mv .nyc_output .nyc_output_feature
 
