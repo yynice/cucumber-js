@@ -30,7 +30,7 @@ function getGoBinaryArchitecture() {
   switch (process.arch) {
     case 'arm':
       return 'arm'
-    case 'i32':
+    case 'ia32':
     case 'x32':
       return '386'
     case 'x64':
