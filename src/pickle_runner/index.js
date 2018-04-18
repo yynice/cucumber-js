@@ -5,7 +5,7 @@ export const version = 'v0.0.2'
 
 function throwUnsupportedErrorMessage() {
   throw new Error(
-    `Unsupported operating system (${process.platfrom}) and system architecture (${process.arch}) combination. Please open an issue on cucumber-js.`
+    `Unsupported operating system (${process.platform}) and system architecture (${process.arch}) combination. Please open an issue on cucumber-js.`
   )
 }
 
