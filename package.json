@@ -145,8 +145,6 @@
     "cli-table": "^0.3.1",
     "colors": "^1.1.2",
     "commander": "^2.9.0",
-    "cucumber-expressions": "^5.0.13",
-    "cucumber-tag-expressions": "^1.1.1",
     "duration": "^0.2.0",
     "escape-string-regexp": "^1.0.5",
     "figures": "2.0.0",
