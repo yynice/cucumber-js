@@ -50,9 +50,14 @@ export function getBinaryLocalPath() {
   return path.join(os.homedir(), 'cucumber', 'pickle-runner', version)
 }
 
-export function getBinaryRemoteUrl(platform, arch) {
+export function getBinaryRemoteUrl() {
   const urlPrefix =
     'https://github.com/cucumber/cucumber-pickle-runner/releases/download'
-  const binaryName = `cucumber-pickle-runner-${getGoBinaryOperatingSystem()}-${getGoBinaryArchitecture()}`
+  const os = getGoBinaryOperatingSystem()
+  const arch = getGoBinaryArchitecture()
+  let binaryName = `cucumber-pickle-runner-${os}-${arch}`
+  if (os === 'windows') {
+    binaryName += '.exe'
+  }
   return `${urlPrefix}/${version}/${binaryName}`
 }
