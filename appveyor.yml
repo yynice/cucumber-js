@@ -17,6 +17,7 @@ install:
   - yarn install
 
 test_script:
+  - systeminfo
   - node --version
   - yarn --version
   - yarn run %test_script%

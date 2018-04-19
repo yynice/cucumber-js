@@ -23,7 +23,9 @@ export default async function install() {
     return
   }
 
-  console.log(`Installing cucumber-pickle-runner ${version}`)
+  console.log(
+    `Installing cucumber-pickle-runner ${version} from ${getBinaryRemoteUrl()}`
+  )
   await new Promise((resolve, reject) => {
     const remoteUrl = getBinaryRemoteUrl()
     request
