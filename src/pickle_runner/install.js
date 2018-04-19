@@ -25,10 +25,23 @@ export default async function install() {
 
   console.log(`Installing cucumber-pickle-runner ${version}`)
   await new Promise((resolve, reject) => {
+    const remoteUrl = getBinaryRemoteUrl()
     request
-      .get(getBinaryRemoteUrl())
+      .get(remoteUrl)
       .on('error', reject)
-      .on('finish', resolve)
-      .pipe(fs.createWriteStream(localPath, { mode: 0o755 }))
+      .on('response', response => {
+        if (response.statusCode >= 400) {
+          reject(
+            new Error(
+              `Fetching ${remoteUrl} responded with status ${response.statusCode}`
+            )
+          )
+          return
+        }
+        response
+          .pipe(fs.createWriteStream(localPath, { mode: 0o755 }))
+          .on('error', reject)
+          .on('finish', resolve)
+      })
   })
 }
