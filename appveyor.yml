@@ -25,4 +25,5 @@ install:
 test_script:
   - node --version
   - yarn --version
-  - yarn run %test_script%
+  - sh: curl -sflL 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh' | bash -e -
+  # - yarn run %test_script%
