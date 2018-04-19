@@ -12,13 +12,7 @@ import _ from 'lodash'
 class World {
   async run(executablePath, inputArgs) {
     const args = ['node', executablePath]
-      .concat(inputArgs, [
-        '--backtrace',
-        '--format',
-        'json:out.json',
-        '--format',
-        'event-protocol:out.events',
-      ])
+      .concat(inputArgs, ['--backtrace', '--format', 'json:out.json'])
       .map(arg => {
         if (_.includes(arg, '/')) {
           return path.normalize(arg)
@@ -62,15 +56,9 @@ class World {
     const jsonOutputPath = path.join(cwd, 'out.json')
     if (fs.existsSync(jsonOutputPath)) {
       const fileContent = fs.readFileSync(jsonOutputPath, 'utf8')
-      console.log('JSON:\n', fileContent)
       if (fileContent) {
         jsonOutput = JSON.parse(fileContent)
       }
-    }
-    const eventProtocolOutputPath = path.join(cwd, 'out.events')
-    if (fs.existsSync(jsonOutputPath)) {
-      const fileContent = fs.readFileSync(eventProtocolOutputPath, 'utf8')
-      console.log('Events:\n', fileContent)
     }
     if (this.debug) {
       console.log(result.stdout + result.stderr) // eslint-disable-line no-console
