@@ -17,7 +17,8 @@ install:
   - yarn install
 
 test_script:
-  - systeminfo
+  - node -e 'process.env.PROCESSOR_ARCHITECTURE'
+  - node -e 'process.env.PROCESSOR_ARCHITEW6432'
   - node --version
   - yarn --version
   - yarn run %test_script%
