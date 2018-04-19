@@ -17,8 +17,7 @@ install:
   - yarn install
 
 test_script:
-  - node -e 'process.env.PROCESSOR_ARCHITECTURE'
-  - node -e 'process.env.PROCESSOR_ARCHITEW6432'
+  - node -e 'console.log(process.env)'
   - node --version
   - yarn --version
   - yarn run %test_script%
