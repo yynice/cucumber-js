@@ -17,7 +17,7 @@ install:
   - yarn install
 
 test_script:
-  - node -p 'process.env'
+  - node -p process.env
   - node --version
   - yarn --version
   - yarn run %test_script%
