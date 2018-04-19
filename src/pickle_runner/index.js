@@ -27,6 +27,13 @@ function getGoBinaryOperatingSystem() {
 }
 
 function getGoBinaryArchitecture() {
+  // Special ckeck on windows machines
+  if (
+    process.env.PROCESSOR_ARCHITECTURE === 'AMD64' ||
+    process.env.PROCESSOR_ARCHITEW6432 === 'AMD64'
+  ) {
+    return 'amd64'
+  }
   switch (process.arch) {
     case 'arm':
       return 'arm'
