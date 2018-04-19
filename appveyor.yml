@@ -1,16 +1,12 @@
-init:
-- sh: curl -sflL 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh' | bash -e -
-
-environment:
-  APPVEYOR_SSH_KEY: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDIZCt9Y7u/x/EjqymyFo6uQtquEonmTkMn2vifn8hXlEUVRsZ6aZGAp1/qJsTj0mgZhGAT/5+iTBEi1PJmVq+12l7dCHAj6DyAru7NUCatLh9ARYNqiPKQ3FrWZ8NC8bDmLeSKyMFp/fpu08ZKBOMNqg8FjEdFx3UHO0BnY8sVhYh7kcjoNpVu/0pucA4IxyO1dtfHsK8FYFkJK1/SO8IaUYCTVVa/Dv+TqshE7AQcl0iWL+NM9e7/6lJW7H6jtwHb9dSpwqMzV5xXer01vJubSTwLLTMm+ts89CE6bNIabpgqLqyglx9Fy/wih5HwHHxQVwTRNL1wV0QgTyZFTzldzhnsH57VviJr79vXUS/m2nfw62ep8argdRaHXh4NwHtxYZxMJFM5hqqrZfNO2diu3TL/k/ovtYlH5HBV6KbODZAoQgL+y/aN6csRZ7wGmjFvUhnOQnrqRLhSr4r8LXPqd2NMku+VvNq/FCaSSOjsKq6Cxc9W6WcXHwjT7GhGo79nOIIH0f8ydbkLENUMml356aqlHD/w96mCxsKRkUxa/EI569hVUsyQB5o1d89U4LNmMYA1RlBXh+VVxcogK1pxOaE30YCu/PcOjkJBFFEAbFzO9zVa83i2IEIDNrhtHbdSpVfPusf7NdbLl1/T87oMD2mSJ0PNwX4CRpXhURBU+Q== charles.w.rudolph@gmail.com
-  APPVEYOR_SSH_BLOCK: true
-
 build: off
 
 cache:
  - "%LOCALAPPDATA%\\Yarn"
 
 environment:
+  APPVEYOR_SSH_KEY: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDIZCt9Y7u/x/EjqymyFo6uQtquEonmTkMn2vifn8hXlEUVRsZ6aZGAp1/qJsTj0mgZhGAT/5+iTBEi1PJmVq+12l7dCHAj6DyAru7NUCatLh9ARYNqiPKQ3FrWZ8NC8bDmLeSKyMFp/fpu08ZKBOMNqg8FjEdFx3UHO0BnY8sVhYh7kcjoNpVu/0pucA4IxyO1dtfHsK8FYFkJK1/SO8IaUYCTVVa/Dv+TqshE7AQcl0iWL+NM9e7/6lJW7H6jtwHb9dSpwqMzV5xXer01vJubSTwLLTMm+ts89CE6bNIabpgqLqyglx9Fy/wih5HwHHxQVwTRNL1wV0QgTyZFTzldzhnsH57VviJr79vXUS/m2nfw62ep8argdRaHXh4NwHtxYZxMJFM5hqqrZfNO2diu3TL/k/ovtYlH5HBV6KbODZAoQgL+y/aN6csRZ7wGmjFvUhnOQnrqRLhSr4r8LXPqd2NMku+VvNq/FCaSSOjsKq6Cxc9W6WcXHwjT7GhGo79nOIIH0f8ydbkLENUMml356aqlHD/w96mCxsKRkUxa/EI569hVUsyQB5o1d89U4LNmMYA1RlBXh+VVxcogK1pxOaE30YCu/PcOjkJBFFEAbFzO9zVa83i2IEIDNrhtHbdSpVfPusf7NdbLl1/T87oMD2mSJ0PNwX4CRpXhURBU+Q== charles.w.rudolph@gmail.com
+  APPVEYOR_SSH_BLOCK: true
+
   matrix:
     - nodejs_version: '8'
       test_script: 'test'
@@ -18,6 +14,9 @@ environment:
       test_script: 'test'
     - nodejs_version: '4'
       test_script: 'feature-test -- --profile node-4'
+
+init:
+- sh: curl -sflL 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh' | bash -e -
 
 install:
   - ps: Install-Product node $env:nodejs_version
