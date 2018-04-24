@@ -5,7 +5,7 @@ import UserCodeRunner from '../user_code_runner'
 import colors from 'colors/safe'
 import { format } from 'assertion-error-formatter'
 
-const { beginTiming, endTiming } = Time
+const { getTimestamp } = Time
 
 async function run({
   defaultTimeout,
@@ -27,7 +27,7 @@ async function run({
   if (!error) {
     const validCodeLengths = stepDefinition.getValidCodeLengths(parameters)
     if (_.includes(validCodeLengths, stepDefinition.code.length)) {
-      beginTiming()
+      const start = getTimestamp()
       const data = await UserCodeRunner.run({
         argsArray: parameters,
         fn: stepDefinition.code,
@@ -36,7 +36,7 @@ async function run({
       })
       error = data.error
       result = data.result
-      duration = endTiming()
+      duration = getTimestamp() - start
     } else {
       error = stepDefinition.getInvalidCodeLengthMessage(parameters)
     }

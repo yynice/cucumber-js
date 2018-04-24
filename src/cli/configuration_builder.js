@@ -56,12 +56,12 @@ export default class ConfigurationBuilder {
       formatOptions: this.getFormatOptions(),
       listI18nKeywordsFor,
       listI18nLanguages,
-      parallel: this.options.parallel,
       profiles: this.options.profile,
       runtimeConfig: {
         isDryRun: !!this.options.dryRun,
         isFailFast: !!this.options.failFast,
         isStrict: !!this.options.strict,
+        maxParallel: this.options.parallel,
       },
       shouldExitImmediately: !!this.options.exit,
       supportCodePaths,
