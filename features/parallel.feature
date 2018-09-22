@@ -29,4 +29,4 @@ Feature: Running scenarios in parallel
       """
     When I run cucumber-js with `--parallel 4`
     Then it passes
-    And it runs in less than 8 seconds
+    And it runs in less than 16 seconds
