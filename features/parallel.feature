@@ -20,13 +20,7 @@ Feature: Running scenarios in parallel
 
         Scenario: b
           Given a slow step
-
-        Scenario: c
-          Given a slow step
-
-        Scenario: d
-          Given a slow step
       """
-    When I run cucumber-js with `--parallel 4`
+    When I run cucumber-js with `--parallel 2`
     Then it passes
-    And it runs in less than 16 seconds
+    And it runs in less than 8 seconds
