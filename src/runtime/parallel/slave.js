@@ -19,11 +19,14 @@ const EVENTS = [
   'test-case-finished',
 ]
 
-function replacerSerializeErrors(key, value) {
-  if (_.isError(value)) {
-    return serializeError(value)
+function serializeResultExceptionIfNecessary(data) {
+  if (
+    data.result &&
+    data.result.exception &&
+    _.isError(data.result.exception)
+  ) {
+    data.result.exception = serializeError(data.result.exception)
   }
-  return value
 }
 
 export default class Slave {
@@ -35,9 +38,10 @@ export default class Slave {
     this.eventBroadcaster = new EventEmitter()
     this.stackTraceFilter = new StackTraceFilter()
     EVENTS.forEach(name => {
-      this.eventBroadcaster.on(name, data =>
+      this.eventBroadcaster.on(name, data => {
+        serializeResultExceptionIfNecessary(data)
         this.sendMessage({ command: commandTypes.EVENT, name, data })
-      )
+      })
     })
   }
 
