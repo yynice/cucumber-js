@@ -77,7 +77,3 @@ Then(/^I see the help text for Cucumber$/, function() {
   const expectedOutput = 'Usage: cucumber-js'
   expect(actualOutput).to.include(expectedOutput)
 })
-
-Then('it runs in less than {int} seconds', function(time) {
-  expect(this.lastRun.time).to.be.lessThan(time * 1000)
-})

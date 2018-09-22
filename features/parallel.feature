@@ -11,7 +11,7 @@ Feature: Running scenarios in parallel
       })
       """
 
-  Scenario: running in parallel can improve speed
+  Scenario: running in parallel can improve speed if there are async operations
     Given a file named "features/a.feature" with:
       """
       Feature: slow
@@ -23,4 +23,3 @@ Feature: Running scenarios in parallel
       """
     When I run cucumber-js with `--parallel 2`
     Then it passes
-    And it runs in less than 8 seconds
