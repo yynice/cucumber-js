@@ -7,7 +7,7 @@ Feature: Running scenarios in parallel
       import Promise from 'bluebird'
 
       Given(/^a slow step$/, function(callback) {
-        setTimeout(callback, 4000)
+        setTimeout(callback, 2000)
       })
       """
 
