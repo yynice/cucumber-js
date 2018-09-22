@@ -3,7 +3,6 @@ import { formatLocation } from '../../formatter/helpers'
 import commandTypes from './command_types'
 import EventEmitter from 'events'
 import Promise from 'bluebird'
-import readline from 'readline'
 import serializeError from 'serialize-error'
 import StackTraceFilter from '../stack_trace_filter'
 import supportCodeLibraryBuilder from '../../support_code_library_builder'
@@ -28,21 +27,16 @@ function replacerSerializeErrors(key, value) {
 }
 
 export default class Slave {
-  constructor({ cwd, stdin, stdout }) {
+  constructor({ cwd, exit, sendMessage }) {
     this.initialized = false
-    this.stdin = stdin
-    this.stdout = stdout
     this.cwd = cwd
+    this.exit = exit
+    this.sendMessage = sendMessage
     this.eventBroadcaster = new EventEmitter()
     this.stackTraceFilter = new StackTraceFilter()
     EVENTS.forEach(name => {
       this.eventBroadcaster.on(name, data =>
-        this.stdout.write(
-          JSON.stringify(
-            { command: commandTypes.EVENT, name, data },
-            replacerSerializeErrors
-          ) + '\n'
-        )
+        this.sendMessage({ command: commandTypes.EVENT, name, data })
       )
     })
   }
@@ -63,7 +57,7 @@ export default class Slave {
       this.stackTraceFilter.filter()
     }
     await this.runTestRunHooks('beforeTestRunHookDefinitions', 'a BeforeAll')
-    this.stdout.write(JSON.stringify({ command: commandTypes.READY }) + '\n')
+    this.sendMessage({ command: commandTypes.READY })
   }
 
   async finalize() {
@@ -71,25 +65,17 @@ export default class Slave {
     if (this.filterStacktraces) {
       this.stackTraceFilter.unfilter()
     }
-    process.exit()
+    this.exit()
   }
 
-  parseMasterLine(line) {
-    const input = JSON.parse(line)
-    if (input.command === 'initialize') {
-      this.initialize(input)
-    } else if (input.command === 'finalize') {
+  receiveMessage(message) {
+    if (message.command === 'initialize') {
+      this.initialize(message)
+    } else if (message.command === 'finalize') {
       this.finalize()
-    } else if (input.command === 'run') {
-      this.runTestCase(input)
+    } else if (message.command === 'run') {
+      this.runTestCase(message)
     }
-  }
-
-  async run() {
-    this.rl = readline.createInterface({ input: this.stdin })
-    this.rl.on('line', line => {
-      this.parseMasterLine(line)
-    })
   }
 
   async runTestCase({ testCase, skip }) {
@@ -101,7 +87,7 @@ export default class Slave {
       worldParameters: this.worldParameters,
     })
     await testCaseRunner.run()
-    this.stdout.write(JSON.stringify({ command: commandTypes.READY }) + '\n')
+    this.sendMessage({ command: commandTypes.READY })
   }
 
   async runTestRunHooks(key, name) {

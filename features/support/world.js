@@ -23,6 +23,7 @@ class World {
 
     let result
 
+    const start = Date.now()
     if (this.spawn) {
       result = await new Promise(resolve => {
         execFile(args[0], args.slice(1), { cwd }, (error, stdout, stderr) => {
@@ -51,6 +52,7 @@ class World {
       stdout.end()
       result = { error, stdout: await toString(stdout), stderr }
     }
+    const end = Date.now()
 
     let jsonOutput = []
     const jsonOutputPath = path.join(cwd, 'out.json')
@@ -68,6 +70,7 @@ class World {
       errorOutput: result.stderr,
       jsonOutput,
       output: colors.strip(result.stdout),
+      time: end - start,
     }
     this.verifiedLastRunError = false
     expect(this.lastRun.output).to.not.include('Unhandled rejection')
