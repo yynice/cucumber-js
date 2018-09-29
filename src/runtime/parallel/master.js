@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import childProcess from 'child_process'
+import crossSpawn from 'cross-spawn'
 import commandTypes from './command_types'
 import path from 'path'
 import Status from '../../status'
@@ -53,7 +53,7 @@ export default class Master {
   }
 
   startSlave(id, total) {
-    const slaveProcess = childProcess.spawn(slaveCommand, [], {
+    const slaveProcess = crossSpawn(slaveCommand, [], {
       env: _.assign({}, process.env, {
         CUCUMBER_PARALLEL: 'true',
         CUCUMBER_TOTAL_SLAVES: total,
